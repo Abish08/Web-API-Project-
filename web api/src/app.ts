@@ -1,10 +1,10 @@
-// Express application setup and middleware configuration
 import express, { Application, NextFunction, Request, Response } from "express";
 import { CustomHttpException } from "./exceptions/http-exception";
 import { ResponseFormatter } from "./utils/apihelper.util";
 import cors from "cors";
 import morgan from "morgan";
 import userRouter from "./routes/user.route";
+import adminUserRouter from "./routes/admin/user.route"; // <-- ADDED
 import path from "path";
 
 // Create Express application instance
@@ -26,6 +26,9 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Mount authentication routes
 app.use("/api/v1/auth", userRouter);
+
+// Mount admin user management routes <-- ADDED
+app.use("/api/v1/admin/users", adminUserRouter);
 
 // Handle 404 - Route not found
 app.use((req: Request, res: Response) => {
