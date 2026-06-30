@@ -31,7 +31,7 @@ export class AdminUserController {
   // 2. Get single user by ID
   async getUserById(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string; // <-- Fixed: cast to string
       const user = await userRepo.findById(id);
       if (!user) {
         return res.status(404).json({ success: false, message: "User not found" });
@@ -75,7 +75,7 @@ export class AdminUserController {
   // 4. Update an existing user
   async updateUser(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string; // <-- Fixed: cast to string
       const { firstName, lastName, email, username, password, role } = req.body;
 
       const existingUser = await userRepo.findById(id);
@@ -114,7 +114,7 @@ export class AdminUserController {
   // 5. Delete a user
   async deleteUser(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string; // <-- Fixed: cast to string
       const deletedUser = await UserCollection.findByIdAndDelete(id);
       
       if (!deletedUser) {
