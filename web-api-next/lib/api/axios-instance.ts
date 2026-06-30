@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getAuthToken } from "@/lib/cookies";
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8089";
 
@@ -12,10 +13,18 @@ const apiClient = axios.create({
   timeout: 10000,
 });
 
-// Add request interceptor for debugging
+// Add request interceptor for token + debugging
 apiClient.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    // Auto-attach token
+    const token = await getAuthToken();
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    
     console.log(" Request:", config.method?.toUpperCase(), config.url);
+    console.log(" Token attached:", !!token);
+    
     return config;
   },
   (error) => {

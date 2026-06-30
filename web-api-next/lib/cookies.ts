@@ -39,3 +39,6 @@ export async function clearAuthCookies() {
   cookieStore.delete("auth_token");
   cookieStore.delete("user_data");
 }
+
+// Alias for compatibility (so both names work)
+export const getAuthToken = getTokenCookie;

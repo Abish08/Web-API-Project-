@@ -1,5 +1,6 @@
 import { getUserData } from "@/lib/cookies";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 export default async function DashboardPage() {
   const userData = await getUserData();
@@ -26,13 +27,13 @@ export default async function DashboardPage() {
             </div>
             
             <nav className="hidden md:flex space-x-6">
-              <a href="#" className="text-gray-900 font-medium text-sm">Home</a>
-              <a href="#" className="text-gray-600 hover:text-gray-900 text-sm">Meals</a>
-              <a href="#" className="text-gray-600 hover:text-gray-900 text-sm">Workout</a>
-              <a href="#" className="text-gray-600 hover:text-gray-900 text-sm">Log</a>
-              <a href="#" className="text-gray-600 hover:text-gray-900 text-sm">Progress</a>
-              <a href="#" className="text-gray-600 hover:text-gray-900 text-sm">Profile</a>
-            </nav>
+  <Link href="/dashboard" className="text-gray-900 font-medium text-sm">Home</Link>
+  <Link href="/meals" className="text-gray-600 hover:text-gray-900 text-sm">Meals</Link>
+  <Link href="/workout" className="text-gray-600 hover:text-gray-900 text-sm">Workout</Link>
+  <Link href="/log" className="text-gray-600 hover:text-gray-900 text-sm">Log</Link>
+  <Link href="/progress" className="text-gray-600 hover:text-gray-900 text-sm">Progress</Link>
+  <Link href="/profile" className="text-gray-600 hover:text-gray-900 text-sm">Profile</Link>
+</nav>
 
             <div className="flex space-x-3">
               <a href="/login" className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900">
