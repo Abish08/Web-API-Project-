@@ -5,6 +5,7 @@ import { ResponseFormatter } from "./utils/apihelper.util";
 import cors from "cors";
 import morgan from "morgan";
 import userRouter from "./routes/user.route";
+import path from "path";
 
 // Create Express application instance
 const app: Application = express();
@@ -20,6 +21,8 @@ app.use(cors(corsConfiguration));           // Enable CORS
 app.use(express.json());                     // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use(morgan("combined"));                 // HTTP request logger
+// Serve static uploads folder
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Mount authentication routes
 app.use("/api/v1/auth", userRouter);

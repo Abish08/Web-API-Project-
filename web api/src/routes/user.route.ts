@@ -1,15 +1,23 @@
-// API route definitions for user endpoints
-import { UserController } from "../controllers/user.controller";
 import { Router } from "express";
+import { authMiddleware } from "../middlewares/auth.middleware";
+import { upload } from "../middlewares/upload.middleware";
+import {
+  registerUser,
+  loginUser,
+  whoami,
+  updateProfile,
+  changePassword
+} from "../controllers/user.controller";
 
-// Create router instance
 const userRouter = Router();
 
-// Initialize controller
-const userControllerInstance = new UserController();
+// Public routes
+userRouter.post("/register", registerUser);
+userRouter.post("/login", loginUser);
 
-// Define authentication routes
-userRouter.post("/register", userControllerInstance.registerUser);
-userRouter.post("/login", userControllerInstance.loginUser);
+// Protected routes
+userRouter.get("/whoami", authMiddleware, whoami);
+userRouter.put("/update", authMiddleware, upload.single("image"), updateProfile);
+userRouter.put("/change-password", authMiddleware, changePassword);
 
 export default userRouter;
