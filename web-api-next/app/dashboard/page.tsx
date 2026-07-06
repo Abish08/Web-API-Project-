@@ -1,6 +1,7 @@
 import { getUserData } from "@/lib/cookies";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { handleLogout } from "@/lib/actions/auth-action";
 
 export default async function DashboardPage() {
   const userData = await getUserData();
@@ -27,21 +28,27 @@ export default async function DashboardPage() {
             </div>
             
             <nav className="hidden md:flex space-x-6">
-  <Link href="/dashboard" className="text-gray-900 font-medium text-sm">Home</Link>
-  <Link href="/meals" className="text-gray-600 hover:text-gray-900 text-sm">Meals</Link>
-  <Link href="/workout" className="text-gray-600 hover:text-gray-900 text-sm">Workout</Link>
-  <Link href="/log" className="text-gray-600 hover:text-gray-900 text-sm">Log</Link>
-  <Link href="/progress" className="text-gray-600 hover:text-gray-900 text-sm">Progress</Link>
-  <Link href="/profile" className="text-gray-600 hover:text-gray-900 text-sm">Profile</Link>
-</nav>
+              <Link href="/dashboard" className="text-gray-900 font-medium text-sm">Home</Link>
+              <Link href="/meals" className="text-gray-600 hover:text-gray-900 text-sm">Meals</Link>
+              <Link href="/workout" className="text-gray-600 hover:text-gray-900 text-sm">Workout</Link>
+              <Link href="/log" className="text-gray-600 hover:text-gray-900 text-sm">Log</Link>
+              <Link href="/progress" className="text-gray-600 hover:text-gray-900 text-sm">Progress</Link>
+              <Link href="/profile" className="text-gray-600 hover:text-gray-900 text-sm">Profile</Link>
+            </nav>
 
-            <div className="flex space-x-3">
-              <a href="/login" className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900">
-                Login
-              </a>
-              <a href="/register" className="px-4 py-2 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600">
-                Register
-              </a>
+            {/* Logout Button */}
+            <div className="flex items-center gap-4">
+              <span className="hidden sm:inline text-sm text-gray-600">
+                {userData.firstName || userData.username}
+              </span>
+              <form action={handleLogout}>
+                <button 
+                  type="submit" 
+                  className="px-4 py-2 text-sm font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  Logout
+                </button>
+              </form>
             </div>
           </div>
         </div>

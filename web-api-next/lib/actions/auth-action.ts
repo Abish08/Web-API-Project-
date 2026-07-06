@@ -7,32 +7,29 @@ import { redirect } from "next/navigation";
 
 // LOGIN
 export const handleLoginUser = async (data: { email: string; password: string }) => {
-  try {
-    const response = await login(data);
-    if (response.success) {
-      await setTokenCookie(response.data.token);
-      await storeUserData(response.data.user);
-
-      // --- SMART REDIRECT LOGIC ---
-      const userRole = response.data.user.role;
-      
-      if (userRole === "admin") {
-        redirect("/admin");
-      } else {
-        redirect("/dashboard");
-      }
-      // ----------------------------
-
-      return {
-        success: true,
-        message: response.message || "Login successful",
-        data: response.data,
-      };
-    }
+  const response = await login(data);
+  
+  if (!response.success) {
     return { success: false, message: response.message || "Login failed" };
-  } catch (error: any) {
-    return { success: false, message: error.message || "Login action failed" };
   }
+
+  await setTokenCookie(response.data.token);
+  await storeUserData(response.data.user);
+
+  // Get the user role
+  const userRole = response.data.user?.role;
+  
+  // Revalidate paths
+  revalidatePath("/admin");
+  revalidatePath("/dashboard");
+  
+  // Redirect based on role
+  if (userRole === "admin") {
+    redirect("/admin");
+  }
+  
+  // Default redirect for non-admin users
+  redirect("/dashboard");
 };
 
 // REGISTER
