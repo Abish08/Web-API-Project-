@@ -4,9 +4,10 @@ import { ResponseFormatter } from "./utils/apihelper.util";
 import cors from "cors";
 import morgan from "morgan";
 import userRouter from "./routes/user.route";
-import adminUserRouter from "./routes/admin/user.route"; // <-- ADDED
+import adminUserRouter from "./routes/admin/user.route"; 
 import path from "path";
 import healthProfileRoutes from "./routes/healthProfile.route";
+import foodRoutes from "./routes/food.route";
 
 // Create Express application instance
 const app: Application = express();
@@ -25,6 +26,7 @@ app.use(morgan("combined"));                 // HTTP request logger
 // Serve static uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use("/api/v1/health-profile", healthProfileRoutes);
+app.use("/api/v1/foods", foodRoutes);
 
 // Mount authentication routes
 app.use("/api/v1/auth", userRouter);
