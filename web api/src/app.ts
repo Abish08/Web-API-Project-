@@ -6,6 +6,7 @@ import morgan from "morgan";
 import userRouter from "./routes/user.route";
 import adminUserRouter from "./routes/admin/user.route"; // <-- ADDED
 import path from "path";
+import healthProfileRoutes from "./routes/healthProfile.route";
 
 // Create Express application instance
 const app: Application = express();
@@ -23,6 +24,7 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use(morgan("combined"));                 // HTTP request logger
 // Serve static uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+app.use("/api/v1/health-profile", healthProfileRoutes);
 
 // Mount authentication routes
 app.use("/api/v1/auth", userRouter);
