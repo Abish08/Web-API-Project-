@@ -12,6 +12,17 @@ export const handleLoginUser = async (data: { email: string; password: string })
     if (response.success) {
       await setTokenCookie(response.data.token);
       await storeUserData(response.data.user);
+
+      // --- SMART REDIRECT LOGIC ---
+      const userRole = response.data.user.role;
+      
+      if (userRole === "admin") {
+        redirect("/admin");
+      } else {
+        redirect("/dashboard");
+      }
+      // ----------------------------
+
       return {
         success: true,
         message: response.message || "Login successful",
