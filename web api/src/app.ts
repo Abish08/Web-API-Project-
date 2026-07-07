@@ -8,6 +8,8 @@ import adminUserRouter from "./routes/admin/user.route";
 import path from "path";
 import healthProfileRoutes from "./routes/healthProfile.route";
 import foodRoutes from "./routes/food.route";
+import workoutRoutes from "./routes/workout.route";
+
 
 // Create Express application instance
 const app: Application = express();
@@ -27,18 +29,15 @@ app.use(morgan("combined"));                 // HTTP request logger
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use("/api/v1/health-profile", healthProfileRoutes);
 app.use("/api/v1/foods", foodRoutes);
-
+app.use("/api/v1/workouts", workoutRoutes);
 // Mount authentication routes
 app.use("/api/v1/auth", userRouter);
-
 // Mount admin user management routes <-- ADDED
 app.use("/api/v1/admin/users", adminUserRouter);
-
 // Handle 404 - Route not found
 app.use((req: Request, res: Response) => {
   return res.status(404).json({ message: "Endpoint not found" });
 });
-
 // Global error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error("Error occurred:", err);
