@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 export default async function AdminOverviewPage() {
-  // Fetch stats from backend
   let stats = {
     totalUsers: 0,
     totalFoods: 0,
@@ -11,29 +10,67 @@ export default async function AdminOverviewPage() {
     activeUsersToday: 0,
   };
 
-  let recentUsers = [];
+  let recentUsers: any[] = [];
 
   try {
     const token = await getTokenCookie();
     
-    // Fetch users count
-    const usersResponse = await fetch("http://localhost:8089/api/v1/admin/users", {
-      headers: { "Authorization": `Bearer ${token}` },
-      cache: "no-store",
-    });
-    const usersData = await usersResponse.json();
-    if (usersData.success) {
-      stats.totalUsers = usersData.data?.total || 0;
-      recentUsers = usersData.data?.users?.slice(0, 5) || [];
+    if (!token) {
+      redirect("/login");
     }
 
-    // Fetch foods count (you'll create this endpoint later)
-    // const foodsResponse = await fetch("http://localhost:8089/api/v1/admin/foods", {
-    //   headers: { "Authorization": `Bearer ${token}` },
-    //   cache: "no-store",
-    // });
-    // const foodsData = await foodsResponse.json();
-    // stats.totalFoods = foodsData.data?.total || 0;
+    // Fetch users
+    try {
+      const usersResponse = await fetch("http://localhost:8089/api/v1/admin/users", {
+        headers: { 
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      });
+      
+      if (usersResponse.ok) {
+        const usersData = await usersResponse.json();
+        console.log("Users API Response:", JSON.stringify(usersData, null, 2));
+        
+        if (usersData.success) {
+          if (Array.isArray(usersData.data)) {
+            recentUsers = usersData.data.slice(0, 5);
+            stats.totalUsers = usersData.total || usersData.data.length;
+          } else if (usersData.data?.users) {
+            recentUsers = usersData.data.users.slice(0, 5);
+            stats.totalUsers = usersData.data.total || usersData.data.users.length;
+          } else if (usersData.users) {
+            recentUsers = usersData.users.slice(0, 5);
+            stats.totalUsers = usersData.total || usersData.users.length;
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+    }
+
+    // Fetch foods count
+    try {
+      const foodsResponse = await fetch("http://localhost:8089/api/v1/foods?limit=1", {
+        headers: { 
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      });
+      
+      if (foodsResponse.ok) {
+        const foodsData = await foodsResponse.json();
+        console.log("Foods API Response:", JSON.stringify(foodsData, null, 2));
+        
+        if (foodsData.success) {
+          stats.totalFoods = foodsData.pagination?.total || foodsData.total || foodsData.data?.length || 0;
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch foods:", error);
+    }
 
   } catch (error) {
     console.error("Failed to fetch admin stats:", error);
@@ -127,7 +164,7 @@ export default async function AdminOverviewPage() {
           <div className="divide-y divide-gray-200">
             {recentUsers.length > 0 ? (
               recentUsers.map((user: any) => (
-                <div key={user._id} className="flex items-center justify-between px-6 py-4">
+                <div key={user._id || user.id} className="flex items-center justify-between px-6 py-4">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
                       <span className="text-sm font-semibold text-green-700">
@@ -154,66 +191,63 @@ export default async function AdminOverviewPage() {
           </div>
         </div>
 
-        {/* Quick Actions & Info */}
-        <div className="space-y-6">
-          {/* System Health */}
-          <div className="rounded-lg border border-gray-200 bg-white p-6">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">System Performance</h3>
-            <div className="space-y-4">
-              <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Database Health</span>
-                  <span className="text-sm font-medium text-green-600">Excellent</span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-gray-200">
-                  <div className="h-2 rounded-full bg-green-500" style={{ width: "98%" }}></div>
-                </div>
+        {/* System Performance */}
+        <div className="rounded-lg border border-gray-200 bg-white p-6">
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">System Performance</h3>
+          <div className="space-y-4">
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-sm text-gray-600">Database Health</span>
+                <span className="text-sm font-medium text-green-600">Excellent</span>
               </div>
-              <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-sm text-gray-600">API Response Time</span>
-                  <span className="text-sm font-medium text-green-600">Fast</span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-gray-200">
-                  <div className="h-2 rounded-full bg-green-500" style={{ width: "95%" }}></div>
-                </div>
+              <div className="h-2 w-full rounded-full bg-gray-200">
+                <div className="h-2 rounded-full bg-green-500" style={{ width: "98%" }}></div>
               </div>
-              <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Storage Usage</span>
-                  <span className="text-sm font-medium text-yellow-600">65%</span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-gray-200">
-                  <div className="h-2 rounded-full bg-yellow-500" style={{ width: "65%" }}></div>
-                </div>
+            </div>
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-sm text-gray-600">API Response Time</span>
+                <span className="text-sm font-medium text-green-600">Fast</span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-gray-200">
+                <div className="h-2 rounded-full bg-green-500" style={{ width: "95%" }}></div>
+              </div>
+            </div>
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-sm text-gray-600">Storage Usage</span>
+                <span className="text-sm font-medium text-yellow-600">65%</span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-gray-200">
+                <div className="h-2 rounded-full bg-yellow-500" style={{ width: "65%" }}></div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Quick Actions */}
-          <div className="rounded-lg border border-gray-200 bg-white p-6">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">Quick Actions</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <Link
-                href="/admin/users"
-                className="flex flex-col items-center justify-center rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50"
-              >
-                <svg className="mb-2 h-6 w-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                </svg>
-                <span className="text-sm font-medium text-gray-700">Add User</span>
-              </Link>
-              <Link
-                href="/admin/foods"
-                className="flex flex-col items-center justify-center rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50"
-              >
-                <svg className="mb-2 h-6 w-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                <span className="text-sm font-medium text-gray-700">Add Food</span>
-              </Link>
-            </div>
-          </div>
+      {/* Quick Actions */}
+      <div className="rounded-lg border border-gray-200 bg-white p-6">
+        <h3 className="mb-4 text-lg font-semibold text-gray-900">Quick Actions</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <Link
+            href="/admin/users"
+            className="flex flex-col items-center justify-center rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50"
+          >
+            <svg className="mb-2 h-6 w-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            </svg>
+            <span className="text-sm font-medium text-gray-700">Add User</span>
+          </Link>
+          <Link
+            href="/admin/foods"
+            className="flex flex-col items-center justify-center rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50"
+          >
+            <svg className="mb-2 h-6 w-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <span className="text-sm font-medium text-gray-700">Add Food</span>
+          </Link>
         </div>
       </div>
     </div>
