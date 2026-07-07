@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { getWorkoutLogsAction, createWorkoutLogAction, deleteWorkoutLogAction, searchWorkoutsAction } from "../workout-log/actions";
-
+import { getWorkoutLogsAction, createWorkoutLogAction, deleteWorkoutLogAction, searchWorkoutsAction } from "./actions";
 interface Workout {
   _id: string;
   name: string;
