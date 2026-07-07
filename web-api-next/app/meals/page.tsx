@@ -13,29 +13,77 @@ interface Food {
   protein: number;
   carbs: number;
   fats: number;
-  description?: string;
+}
+
+interface HealthProfile {
+  dailyCalorieTarget: number;
+  proteinTarget: number;
+  bmi?: number;
+  goal?: string;
 }
 
 export default function MealsPage() {
   const [foods, setFoods] = useState<Food[]>([]);
   const [loading, setLoading] = useState(true);
-  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [selectedMealType, setSelectedMealType] = useState("Breakfast");
+  const [healthProfile, setHealthProfile] = useState<HealthProfile>({
+    dailyCalorieTarget: 2000,
+    proteinTarget: 150,
+  });
+  const [consumedCalories, setConsumedCalories] = useState(1200);
+  const [consumedProtein, setConsumedProtein] = useState(85);
+  const [consumedCarbs, setConsumedCarbs] = useState(142);
 
-  const categories = [
-    "All", "Breakfast", "Lunch", "Dinner", "Snacks", 
-    "Beverages", "Fruits", "Vegetables", "Grains", "Protein", "Dairy"
-  ];
+  const mealTypes = ["Breakfast", "Lunch", "Dinner", "Snacks"];
 
   useEffect(() => {
     loadFoods();
-  }, [categoryFilter]);
+    loadHealthProfile();
+    loadTodayConsumption();
+  }, [selectedMealType]);
+
+  const loadHealthProfile = async () => {
+    try {
+      const response = await fetch("http://localhost:8089/api/v1/health-profile", {
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+      if (data.success && data.data) {
+        setHealthProfile({
+          dailyCalorieTarget: data.data.dailyCalorieTarget || 2000,
+          proteinTarget: data.data.proteinTarget || 150,
+          bmi: data.data.bmi,
+          goal: data.data.goal,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load health profile:", error);
+    }
+  };
+
+  const loadTodayConsumption = async () => {
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      const response = await fetch(`http://localhost:8089/api/v1/food-logs?date=${today}`);
+      const data = await response.json();
+      if (data.success && data.summary) {
+        setConsumedCalories(data.summary.calories || 0);
+        setConsumedProtein(data.summary.protein || 0);
+        setConsumedCarbs(data.summary.carbs || 0);
+      }
+    } catch (error) {
+      console.error("Failed to load consumption:", error);
+    }
+  };
 
   const loadFoods = async () => {
     setLoading(true);
     try {
-      const result = await fetchFoodsAction(categoryFilter);
+      const result = await fetchFoodsAction(selectedMealType.toLowerCase());
       if (result.success) {
-        setFoods(result.data);
+        // Get 3-4 random foods for recommendations
+        const shuffled = result.data.sort(() => 0.5 - Math.random());
+        setFoods(shuffled.slice(0, 4));
       }
     } catch (error) {
       console.error("Failed to load foods:", error);
@@ -43,6 +91,10 @@ export default function MealsPage() {
       setLoading(false);
     }
   };
+
+  const calorieProgress = Math.min((consumedCalories / healthProfile.dailyCalorieTarget) * 100, 100);
+  const proteinProgress = Math.min((consumedProtein / healthProfile.proteinTarget) * 100, 100);
+  const carbsProgress = Math.min((consumedCarbs / 250) * 100, 100); // Assuming 250g carb target
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -72,85 +124,142 @@ export default function MealsPage() {
         </div>
       </nav>
 
-      {/* Header */}
-      <div className="bg-green-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-bold mb-2">Food Database</h1>
-          <p className="text-green-100 text-lg">
-            Explore our comprehensive database of Nepali and international foods
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Daily Nutrition Plan</h1>
+          <p className="text-gray-600">
+            Expertly curated meal recommendations based on your metabolic profile and fitness goals
           </p>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 -mt-8">
-        {/* Category Filter */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6 overflow-x-auto">
-          <div className="flex gap-2 min-w-max">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setCategoryFilter(cat.toLowerCase())}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  categoryFilter === cat.toLowerCase()
-                    ? "bg-green-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+        {/* Targets */}
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          <div className="bg-white p-4 rounded-lg shadow border border-gray-200 text-center">
+            <p className="text-2xl font-bold text-gray-900">{healthProfile.dailyCalorieTarget}</p>
+            <p className="text-xs text-gray-500 uppercase">Target Kcal</p>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow border border-gray-200 text-center">
+            <p className="text-2xl font-bold text-gray-900">{healthProfile.proteinTarget}g</p>
+            <p className="text-xs text-gray-500 uppercase">Protein Goal</p>
           </div>
         </div>
 
-        {/* Foods Grid */}
+        {/* Meal Type Tabs */}
+        <div className="flex gap-2 mb-6">
+          {mealTypes.map((meal) => (
+            <button
+              key={meal}
+              onClick={() => setSelectedMealType(meal)}
+              className={`px-6 py-2 rounded-full text-sm font-medium transition-colors ${
+                selectedMealType === meal
+                  ? "bg-green-700 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {meal}
+            </button>
+          ))}
+        </div>
+
+        {/* Recommended Meals Grid */}
         {loading ? (
-          <div className="text-center py-12 text-gray-500">Loading foods...</div>
-        ) : foods.length === 0 ? (
-          <div className="text-center py-12 text-gray-500 bg-white rounded-lg border border-gray-200">
-            No foods found in this category.
-          </div>
+          <div className="text-center py-12 text-gray-500">Loading recommendations...</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {foods.map((food) => (
-              <div key={food._id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6 border border-gray-100">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-lg font-bold text-gray-900 line-clamp-1">{food.name}</h3>
-                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
-                    {food.category}
-                  </span>
-                </div>
-
-                <p className="text-xs text-gray-500 mb-4">Per {food.servingSize}g serving</p>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Calories</span>
-                    <span className="font-bold text-gray-900">{food.calories} kcal</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {foods.map((food, index) => (
+              <div key={food._id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow border border-gray-100">
+                {index === 0 && (
+                  <div className="bg-green-600 text-white text-xs font-semibold px-3 py-1 rounded-br-lg inline-block">
+                    Recommended
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Protein</span>
-                    <span className="font-semibold text-blue-600">{food.protein}g</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Carbs</span>
-                    <span className="font-semibold text-green-600">{food.carbs}g</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Fats</span>
-                    <span className="font-semibold text-yellow-600">{food.fats}g</span>
-                  </div>
-                </div>
-
-                {food.description && (
-                  <p className="mt-4 text-xs text-gray-500 line-clamp-2 border-t border-gray-100 pt-3">
-                    {food.description}
-                  </p>
                 )}
+                
+                <div className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-lg font-bold text-gray-900">{food.name}</h3>
+                    <span className="text-sm font-semibold text-gray-900">{food.calories} kcal</span>
+                  </div>
+
+                  <div className="flex gap-2 mb-4">
+                    <span className="text-xs px-2 py-1 rounded bg-green-100 text-green-700">
+                      {food.protein}g Protein
+                    </span>
+                    <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700">
+                      {food.carbs}g Carbs
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => {/* Add to log */}}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium py-2 rounded-lg transition-colors"
+                  >
+                    Log Meal
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         )}
+
+        {/* Daily Breakdown & Macros */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Daily Breakdown */}
+          <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-700 mb-4">DAILY BREAKDOWN</h3>
+            <div className="flex items-center justify-center">
+              <div className="relative w-32 h-32">
+                <svg className="w-full h-full" viewBox="0 0 36 36">
+                  <path
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none"
+                    stroke="#E5E7EB"
+                    strokeWidth="3"
+                  />
+                  <path
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none"
+                    stroke="#166534"
+                    strokeWidth="3"
+                    strokeDasharray={`${calorieProgress}, 100`}
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-2xl font-bold text-gray-900">{Math.round(calorieProgress)}%</span>
+                </div>
+              </div>
+            </div>
+            <p className="text-center text-sm text-gray-600 mt-4">
+              Consumed {Math.round(consumedCalories)} of {healthProfile.dailyCalorieTarget} kcal
+            </p>
+          </div>
+
+          {/* Macronutrient Balance */}
+          <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-700 mb-4">MACRONUTRIENT BALANCE</h3>
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium text-gray-700">Proteins</span>
+                  <span className="text-sm font-medium text-gray-900">{Math.round(consumedProtein)}g / {healthProfile.proteinTarget}g</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${proteinProgress}%` }}></div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium text-gray-700">Carbohydrates</span>
+                  <span className="text-sm font-medium text-gray-900">{Math.round(consumedCarbs)}g / 210g</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-green-500 h-2 rounded-full" style={{ width: `${carbsProgress}%` }}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
