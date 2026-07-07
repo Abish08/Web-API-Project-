@@ -20,7 +20,8 @@ export class FoodRepository {
     }
 
     if (category && category !== "all") {
-      query.category = category;
+      // ✅ Case-insensitive category matching
+      query.category = { $regex: new RegExp(`^${category}$`, "i") };
     }
 
     const skip = (page - 1) * limit;

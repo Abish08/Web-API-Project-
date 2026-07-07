@@ -16,7 +16,6 @@ export async function fetchFoodsAction(category: string = "all") {
   }
 }
 
-// Add this new function to log food directly from the Meals page
 export async function createFoodLogAction(logData: any) {
   try {
     const token = await getTokenCookie();
@@ -30,5 +29,36 @@ export async function createFoodLogAction(logData: any) {
     return await response.json();
   } catch (error) {
     return { success: false, message: "Failed to create log" };
+  }
+}
+
+export async function getUserHealthProfileAction() {
+  try {
+    const token = await getTokenCookie();
+    if (!token) return { success: false, message: "Not authenticated" };
+
+    const response = await fetch("http://localhost:8089/api/v1/health-profile", {
+      headers: { "Authorization": `Bearer ${token}` },
+      cache: "no-store",
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Failed to fetch health profile" };
+  }
+}
+
+export async function getTodayConsumptionAction() {
+  try {
+    const token = await getTokenCookie();
+    if (!token) return { success: false, message: "Not authenticated" };
+
+    const today = new Date().toISOString().split("T")[0];
+    const response = await fetch(`http://localhost:8089/api/v1/food-logs?date=${today}`, {
+      headers: { "Authorization": `Bearer ${token}` },
+      cache: "no-store",
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Failed to fetch consumption" };
   }
 }
