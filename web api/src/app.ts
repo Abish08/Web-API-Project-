@@ -9,6 +9,8 @@ import path from "path";
 import healthProfileRoutes from "./routes/healthProfile.route";
 import foodRoutes from "./routes/food.route";
 import workoutRoutes from "./routes/workout.route";
+import foodLogRoutes from "./routes/foodLog.route";
+
 
 // Create Express application instance
 const app: Application = express();
@@ -37,6 +39,7 @@ app.use("/api/v1/foods", foodRoutes);
 app.use("/api/v1/workouts", workoutRoutes);
 app.use("/api/v1/auth", userRouter);
 app.use("/api/v1/admin/users", adminUserRouter);
+app.use("/api/v1/food-logs", foodLogRoutes);
 
 // Handle 404 - Route not found
 app.use((req: Request, res: Response) => {
