@@ -10,6 +10,8 @@ import healthProfileRoutes from "./routes/healthProfile.route";
 import foodRoutes from "./routes/food.route";
 import workoutRoutes from "./routes/workout.route";
 import foodLogRoutes from "./routes/foodLog.route";
+import workoutLogRoutes from "./routes/workoutLog.route";
+
 
 
 // Create Express application instance
@@ -40,6 +42,8 @@ app.use("/api/v1/workouts", workoutRoutes);
 app.use("/api/v1/auth", userRouter);
 app.use("/api/v1/admin/users", adminUserRouter);
 app.use("/api/v1/food-logs", foodLogRoutes);
+app.use("/api/v1/workout-logs", workoutLogRoutes);
+
 
 // Handle 404 - Route not found
 app.use((req: Request, res: Response) => {
