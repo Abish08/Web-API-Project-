@@ -10,14 +10,16 @@ import healthProfileRoutes from "./routes/healthProfile.route";
 import foodRoutes from "./routes/food.route";
 import workoutRoutes from "./routes/workout.route";
 
-
 // Create Express application instance
 const app: Application = express();
 
-// CORS configuration - allow all origins
+// CORS configuration - FIXED
 const corsConfiguration = {
-  origin: ["*"],
-  successStatus: 200
+  origin: "*",  // Allow all origins (for development)
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+  optionsSuccessStatus: 200
 };
 
 // Middleware setup
@@ -25,19 +27,22 @@ app.use(cors(corsConfiguration));           // Enable CORS
 app.use(express.json());                     // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use(morgan("combined"));                 // HTTP request logger
+
 // Serve static uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
+// Mount routes
 app.use("/api/v1/health-profile", healthProfileRoutes);
 app.use("/api/v1/foods", foodRoutes);
 app.use("/api/v1/workouts", workoutRoutes);
-// Mount authentication routes
 app.use("/api/v1/auth", userRouter);
-// Mount admin user management routes <-- ADDED
 app.use("/api/v1/admin/users", adminUserRouter);
+
 // Handle 404 - Route not found
 app.use((req: Request, res: Response) => {
   return res.status(404).json({ message: "Endpoint not found" });
 });
+
 // Global error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error("Error occurred:", err);
