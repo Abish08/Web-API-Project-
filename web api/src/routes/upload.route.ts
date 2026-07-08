@@ -1,7 +1,7 @@
 import { Router } from "express";
+import { UserCollection } from "../models/user.model"; 
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { upload } from "../middlewares/upload.middleware";
-import { UserModel } from "../models/user.model";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import path from "path";
 import fs from "fs";
@@ -18,7 +18,7 @@ router.post("/profile-picture", authMiddleware, upload.single("profilePicture"),
     const userId = (req as AuthRequest).user!.id;
     
     // Delete old profile picture if exists
-    const user = await UserModel.findById(userId);
+    const user = await UserCollection.findById(userId); 
     if (user && user.profilePicture?.publicId) {
       const oldFilePath = path.join(__dirname, "../../uploads", user.profilePicture.publicId);
       if (fs.existsSync(oldFilePath)) {
@@ -27,7 +27,7 @@ router.post("/profile-picture", authMiddleware, upload.single("profilePicture"),
     }
 
     // Update user with new profile picture
-    const updatedUser = await UserModel.findByIdAndUpdate(
+    const updatedUser = await UserCollection.findByIdAndUpdate( 
       userId,
       {
         profilePicture: {
@@ -53,14 +53,14 @@ router.delete("/profile-picture", authMiddleware, async (req, res) => {
   try {
     const userId = (req as AuthRequest).user!.id;
     
-    const user = await UserModel.findById(userId);
+    const user = await UserCollection.findById(userId); 
     if (user && user.profilePicture?.publicId) {
       const filePath = path.join(__dirname, "../../uploads", user.profilePicture.publicId);
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
       
-      await UserModel.findByIdAndUpdate(userId, { 
+      await UserCollection.findByIdAndUpdate(userId, { 
         profilePicture: undefined 
       });
     }

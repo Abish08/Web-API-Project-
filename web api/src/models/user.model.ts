@@ -7,14 +7,14 @@ export interface IUserDocument extends Document {
   username: string;
   password: string;
   role: "admin" | "user"; 
-  profileImage?: string;
+  // Changed from string to object
+  profilePicture?: {
+    url: string;
+    publicId: string;
+  };
   createdAt: Date;
   updatedAt: Date;
-  profilePicture?: {
-  url: string;
-  publicId: string;
-};
-
+  
 }
 
 const UserSchema: Schema = new Schema(
@@ -29,7 +29,11 @@ const UserSchema: Schema = new Schema(
       enum: ["admin", "user"], 
       default: "user" 
     }, 
-    profileImage: { type: String, default: null }
+    // Changed from string to object
+    profilePicture: {
+      url: String,
+      publicId: String,
+    }
   },
   { timestamps: true }
 );
