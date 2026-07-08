@@ -17,21 +17,26 @@ const storage = multer.diskStorage({
   },
 });
 
-// Updated file filter to accept more formats
+//  File filter to accept images AND videos
 const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowedTypes = [
+    // Images
     "image/jpeg",
     "image/jpg",
     "image/png",
     "image/webp",
     "image/gif",
-    "image/avif"  // Added AVIF support
+    "image/avif",
+    // Videos
+    "video/mp4",
+    "video/webm",
+    "video/quicktime",
   ];
   
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error(`Invalid file type: ${file.mimetype}. Allowed types: JPEG, JPG, PNG, WebP, GIF, AVIF`));
+    cb(new Error(`Invalid file type: ${file.mimetype}. Allowed types: Images (JPEG, PNG, WebP, GIF, AVIF) and Videos (MP4, WebM, MOV)`));
   }
 };
 
@@ -39,6 +44,6 @@ export const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB
+    fileSize: 50 * 1024 * 1024, // Increased to 50MB for videos
   },
 });
