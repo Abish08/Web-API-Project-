@@ -10,6 +10,11 @@ export interface IUserDocument extends Document {
   profileImage?: string;
   createdAt: Date;
   updatedAt: Date;
+  profilePicture?: {
+  url: string;
+  publicId: string;
+};
+
 }
 
 const UserSchema: Schema = new Schema(
