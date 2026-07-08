@@ -8,6 +8,13 @@ export interface IWorkout extends Document {
   difficulty: string; // Beginner, Intermediate, Advanced
   description?: string;
   equipment?: string;
+  //  Media field for images/videos
+  media?: Array<{
+    type: "image" | "video";
+    url: string;
+    publicId: string;
+    thumbnail?: string;
+  }>;
   isApproved: boolean;
   createdBy?: mongoose.Types.ObjectId;
 }
@@ -29,6 +36,13 @@ const workoutSchema = new Schema<IWorkout>(
     },
     description: { type: String, trim: true },
     equipment: { type: String, trim: true },
+    // ✅ NEW: Media field in schema
+    media: [{
+      type: { type: String, enum: ["image", "video"], required: true },
+      url: String,
+      publicId: String,
+      thumbnail: String,
+    }],
     isApproved: { type: Boolean, default: true },
     createdBy: { type: Schema.Types.ObjectId, ref: "User" },
   },
