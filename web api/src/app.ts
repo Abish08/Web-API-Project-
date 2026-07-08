@@ -45,6 +45,8 @@ app.use("/api/v1/admin/users", adminUserRouter);
 app.use("/api/v1/food-logs", foodLogRoutes);
 app.use("/api/v1/workout-logs", workoutLogRoutes);
 app.use("/api/v1/progress", progressRouter);
+//  Serve uploaded files statically
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 
 // Handle 404 - Route not found
