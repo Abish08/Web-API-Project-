@@ -22,6 +22,36 @@ export class FoodController {
     }
   }
 
+  //  Create food with images
+  async createFoodWithImages(req: Request, res: Response) {
+    try {
+      const foodData: any = req.body;
+      
+      // Add createdBy if user is authenticated
+      if ((req as AuthRequest).user) {
+        foodData.createdBy = (req as AuthRequest).user!.id;
+      }
+
+      // ✅ NEW: Handle uploaded images
+      if (req.files && Array.isArray(req.files)) {
+        foodData.images = (req.files as Express.Multer.File[]).map(file => ({
+          url: `/uploads/${file.filename}`,
+          publicId: file.filename,
+        }));
+        
+        // Set first image as thumbnail
+        if (foodData.images.length > 0) {
+          foodData.thumbnail = foodData.images[0];
+        }
+      }
+
+      const food = await foodService.createFood(foodData);
+      res.status(201).json({ success: true, data: food });
+    } catch (error: any) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  }
+
   // Get all foods (with pagination, search, filter)
   async getAllFoods(req: Request, res: Response) {
     try {
@@ -49,7 +79,7 @@ export class FoodController {
   // Get food by ID
   async getFoodById(req: Request, res: Response) {
     try {
-      const id: string = req.params.id as string; // ✅ Fix: Explicitly cast to string
+      const id: string = req.params.id as string;
       const food = await foodService.getFoodById(id);
       res.status(200).json({ success: true, data: food });
     } catch (error: any) {
@@ -60,7 +90,7 @@ export class FoodController {
   // Update food
   async updateFood(req: Request, res: Response) {
     try {
-      const id: string = req.params.id as string; // ✅ Fix: Explicitly cast to string
+      const id: string = req.params.id as string;
       const updateData = req.body;
       const food = await foodService.updateFood(id, updateData);
       res.status(200).json({ success: true, data: food });
@@ -72,7 +102,7 @@ export class FoodController {
   // Delete food
   async deleteFood(req: Request, res: Response) {
     try {
-      const id: string = req.params.id as string; // ✅ Fix: Explicitly cast to string
+      const id: string = req.params.id as string;
       await foodService.deleteFood(id);
       res.status(200).json({ success: true, message: "Food deleted successfully" });
     } catch (error: any) {
@@ -83,7 +113,7 @@ export class FoodController {
   // Get foods by category
   async getFoodsByCategory(req: Request, res: Response) {
     try {
-      const category: string = req.params.category as string; // ✅ Fix: Explicitly cast to string
+      const category: string = req.params.category as string;
       const foods = await foodService.getFoodsByCategory(category);
       res.status(200).json({ success: true, data: foods });
     } catch (error: any) {
@@ -94,7 +124,7 @@ export class FoodController {
   // Search foods
   async searchFoods(req: Request, res: Response) {
     try {
-      const query: string = req.query.query as string; // ✅ Fix: Explicitly cast to string
+      const query: string = req.query.query as string;
       if (!query) {
         return res.status(400).json({ success: false, message: "Search query is required" });
       }
