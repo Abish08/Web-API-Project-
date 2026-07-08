@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { FoodController } from "../controllers/food.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
-import { adminMiddleware } from "../middlewares/admin.middleware"; // We'll create this
+import { adminMiddleware } from "../middlewares/admin.middleware";
+import { upload } from "../middlewares/upload.middleware"; // ✅ NEW: Import upload
 
 const router = Router();
 const controller = new FoodController();
@@ -12,8 +13,10 @@ router.get("/search", (req, res) => controller.searchFoods(req, res));
 router.get("/category/:category", (req, res) => controller.getFoodsByCategory(req, res));
 router.get("/:id", (req, res) => controller.getFoodById(req, res));
 
-// Admin-only routes (require admin role)
-router.post("/", authMiddleware, adminMiddleware, (req, res) => controller.createFood(req, res));
+// ✅ UPDATED: Admin-only routes with image upload support
+router.post("/", authMiddleware, adminMiddleware, upload.array("images", 5), (req, res) => 
+  controller.createFoodWithImages(req, res)
+);
 router.put("/:id", authMiddleware, adminMiddleware, (req, res) => controller.updateFood(req, res));
 router.delete("/:id", authMiddleware, adminMiddleware, (req, res) => controller.deleteFood(req, res));
 
