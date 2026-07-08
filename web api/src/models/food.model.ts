@@ -12,9 +12,19 @@ export interface IFood extends Document {
   sugar?: number;
   sodium?: number;
   description?: string;
+  // ✅ NEW: Image fields
+  images?: Array<{
+    url: string;
+    publicId: string;
+  }>;
+  thumbnail?: {
+    url: string;
+    publicId: string;
+  };
   isApproved: boolean;
   createdBy?: mongoose.Types.ObjectId;
 }
+
 
 const foodSchema = new Schema<IFood>(
   {
@@ -33,11 +43,22 @@ const foodSchema = new Schema<IFood>(
     sugar: { type: Number, default: 0, min: 0 },
     sodium: { type: Number, default: 0, min: 0 },
     description: { type: String, trim: true },
+    //  Image fields in schema
+    images: [{
+      url: String,
+      publicId: String,
+    }],
+    thumbnail: {
+      url: String,
+      publicId: String,
+    },
     isApproved: { type: Boolean, default: true },
     createdBy: { type: Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );
+
+
 
 // Index for faster searches
 foodSchema.index({ name: "text", category: 1 });
