@@ -11,6 +11,7 @@ import foodRoutes from "./routes/food.route";
 import workoutRoutes from "./routes/workout.route";
 import foodLogRoutes from "./routes/foodLog.route";
 import workoutLogRoutes from "./routes/workoutLog.route";
+import progressRouter from "./routes/progress.route";
 
 
 
@@ -43,6 +44,7 @@ app.use("/api/v1/auth", userRouter);
 app.use("/api/v1/admin/users", adminUserRouter);
 app.use("/api/v1/food-logs", foodLogRoutes);
 app.use("/api/v1/workout-logs", workoutLogRoutes);
+app.use("/api/v1/progress", progressRouter);
 
 
 // Handle 404 - Route not found
