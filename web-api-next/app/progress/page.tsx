@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { getTokenCookie } from "@/lib/cookies";
 import {
   getCalorieHistoryAction,
   getWorkoutHistoryAction,
@@ -28,6 +29,14 @@ export default function ProgressPage() {
   const [workoutData, setWorkoutData] = useState<any[]>([]);
   const [summary, setSummary] = useState({ totalFoodLogs: 0, totalWorkoutLogs: 0 });
   const [loading, setLoading] = useState(true);
+    const [todayStats, setTodayStats] = useState({
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fats: 0,
+    workoutDuration: 0,
+    caloriesBurned: 0,
+  });
 
   useEffect(() => {
     loadData();
