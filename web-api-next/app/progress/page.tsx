@@ -147,30 +147,31 @@ export default function ProgressPage() {
         </div>
 
         {/* Today's Progress */}
-        <div className="bg-gradient-to-r from-green-600 to-blue-600 rounded-lg shadow-lg p-6 mb-8 text-white">
-          <h2 className="text-2xl font-bold mb-4">Today's Progress</h2>
+               {/* Today's Progress */}
+        <div className="bg-gradient-to-r from-green-600 to-blue-600 rounded-lg shadow-lg p-6 mb-8">
+          <h2 className="text-2xl font-bold mb-4 text-white">Today's Progress</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white bg-opacity-20 rounded-lg p-4">
-              <p className="text-sm opacity-90 mb-1">Calories</p>
-              <p className="text-3xl font-bold">{todayStats.calories}</p>
-              <p className="text-xs opacity-75">kcal consumed</p>
+            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
+              <p className="text-sm text-white/90 mb-1">Calories</p>
+              <p className="text-3xl font-bold text-white">{todayStats.calories}</p>
+              <p className="text-xs text-white/75">kcal consumed</p>
             </div>
-            <div className="bg-white bg-opacity-20 rounded-lg p-4">
-              <p className="text-sm opacity-90 mb-1">Protein</p>
-              <p className="text-3xl font-bold">{todayStats.protein}g</p>
-              <p className="text-xs opacity-75">protein</p>
+            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
+              <p className="text-sm text-white/90 mb-1">Protein</p>
+              <p className="text-3xl font-bold text-white">{todayStats.protein}g</p>
+              <p className="text-xs text-white/75">protein</p>
             </div>
-            <div className="bg-white bg-opacity-20 rounded-lg p-4">
-              <p className="text-sm opacity-90 mb-1">Workout</p>
-              <p className="text-3xl font-bold">{todayStats.workoutDuration}m</p>
-              <p className="text-xs opacity-75">{todayStats.caloriesBurned} kcal</p>
+            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
+              <p className="text-sm text-white/90 mb-1">Workout</p>
+              <p className="text-3xl font-bold text-white">{todayStats.workoutDuration}m</p>
+              <p className="text-xs text-white/75">{todayStats.caloriesBurned} kcal</p>
             </div>
-            <div className="bg-white bg-opacity-20 rounded-lg p-4">
-              <p className="text-sm opacity-90 mb-1">Net Calories</p>
-              <p className="text-3xl font-bold">
+            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
+              <p className="text-sm text-white/90 mb-1">Net Calories</p>
+              <p className="text-3xl font-bold text-white">
                 {todayStats.calories - todayStats.caloriesBurned}
               </p>
-              <p className="text-xs opacity-75">remaining</p>
+              <p className="text-xs text-white/75">remaining</p>
             </div>
           </div>
         </div>
