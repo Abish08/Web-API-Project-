@@ -38,8 +38,9 @@ export default function ProgressPage() {
     caloriesBurned: 0,
   });
 
-  useEffect(() => {
+    useEffect(() => {
     loadData();
+    loadTodayStats();
   }, [timeRange]);
 
   const loadData = async () => {
@@ -50,6 +51,36 @@ export default function ProgressPage() {
         getWorkoutHistoryAction(timeRange),
         getSummaryAction(),
       ]);
+        const loadTodayStats = async () => {
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      
+      // Fetch today's food logs
+      const foodRes = await fetch(`http://localhost:8089/api/v1/food-logs?date=${today}`, {
+        headers: { "Authorization": `Bearer ${await getTokenCookie()}` },
+      });
+      const foodData = await foodRes.json();
+      
+      // Fetch today's workout logs
+      const workoutRes = await fetch(`http://localhost:8089/api/v1/workout-logs?date=${today}`, {
+        headers: { "Authorization": `Bearer ${await getTokenCookie()}` },
+      });
+      const workoutData = await workoutRes.json();
+      
+      if (foodData.success && workoutData.success) {
+        setTodayStats({
+          calories: foodData.summary?.calories || 0,
+          protein: foodData.summary?.protein || 0,
+          carbs: foodData.summary?.carbs || 0,
+          fats: foodData.summary?.fats || 0,
+          workoutDuration: workoutData.summary?.duration || 0,
+          caloriesBurned: workoutData.summary?.calories || 0,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load today's stats:", error);
+    }
+  };
 
       if (calorieResult.success) setCalorieData(calorieResult.data);
       if (workoutResult.success) setWorkoutData(workoutResult.data);
