@@ -3,6 +3,7 @@ import { CustomHttpException } from "./exceptions/http-exception";
 import { ResponseFormatter } from "./utils/apihelper.util";
 import cors from "cors";
 import morgan from "morgan";
+import cookieParser from "cookie-parser"; // ✅ NEW
 import userRouter from "./routes/user.route";
 import adminUserRouter from "./routes/admin/user.route"; 
 import path from "path";
@@ -14,31 +15,24 @@ import workoutLogRoutes from "./routes/workoutLog.route";
 import progressRouter from "./routes/progress.route";
 import uploadRouter from "./routes/upload.route";
 
-
-
-
-// Create Express application instance
 const app: Application = express();
 
-// CORS configuration - FIXED
 const corsConfiguration = {
-  origin: "*",  // Allow all origins (for development)
+  origin: "http://localhost:3000",
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
   optionsSuccessStatus: 200
 };
 
-// Middleware setup
-app.use(cors(corsConfiguration));           // Enable CORS
-app.use(express.json());                     // Parse JSON bodies
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
-app.use(morgan("combined"));                 // HTTP request logger
+app.use(cors(corsConfiguration));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser()); // ✅ NEW - Parse cookies
+app.use(morgan("combined"));
 
-// Serve static uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-// Mount routes
 app.use("/api/v1/health-profile", healthProfileRoutes);
 app.use("/api/v1/foods", foodRoutes);
 app.use("/api/v1/workouts", workoutRoutes);
@@ -47,17 +41,12 @@ app.use("/api/v1/admin/users", adminUserRouter);
 app.use("/api/v1/food-logs", foodLogRoutes);
 app.use("/api/v1/workout-logs", workoutLogRoutes);
 app.use("/api/v1/progress", progressRouter);
-//  Serve uploaded files statically
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use("/api/v1/upload", uploadRouter);
 
-
-// Handle 404 - Route not found
 app.use((req: Request, res: Response) => {
   return res.status(404).json({ message: "Endpoint not found" });
 });
 
-// Global error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error("Error occurred:", err);
   

@@ -1,50 +1,52 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../configs/constant";
-import { ResponseFormatter } from "../utils/apihelper.util";
-import { UserRepositoryMongo } from "../repositories/user.repository";
+import { JWT_SECRET } from "../configs/constant"; // ✅ Import the constant
 
 export interface AuthRequest extends Request {
   user?: {
     id: string;
     email: string;
-    role: string; // <-- Added role
+    role: string;
   };
 }
 
-const userRepo = new UserRepositoryMongo();
-
-export const authMiddleware = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-) => {
+export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    let token: string | undefined;
+
+    // Check Authorization header first
     const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return ResponseFormatter.errorResponse(res, "No token provided", 401);
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.substring(7);
     }
 
-    const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string };
+    // If no token in header, check cookies
+    if (!token && req.cookies) {
+      token = req.cookies.auth_token;
+    }
 
-    // Fetch user from database to get their role
-    const user = await userRepo.findById(decoded.id);
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "No authentication token provided",
+      });
+    }
+
+    // ✅ FIXED: Use the same JWT_SECRET constant
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
     
-    if (!user) {
-      return ResponseFormatter.errorResponse(res, "User not found", 404);
-    }
-
-    // Attach complete user info including role
     req.user = {
-      id: user._id.toString(),
-      email: user.email,
-      role: user.role, // <-- Now includes role!
+      id: decoded.id,
+      email: decoded.email,
+      role: decoded.role,
     };
 
     next();
   } catch (error) {
-    return ResponseFormatter.errorResponse(res, "Invalid or expired token", 401);
+    console.error("Token verification failed:", error);
+    return res.status(401).json({
+      success: false,
+      message: "Invalid or expired token",
+    });
   }
 };

@@ -9,6 +9,6 @@ export const SERVER_PORT: number = Number(process.env.PORT) || 8089;
 export const DATABASE_URL: string =
   process.env.MONGODB_URL || "mongodb://localhost:27017/sprint2-db";
 
-// JWT secret key for token generation
+// ✅ FIXED: Use JWT_SECRET instead of SECRET_KEY
 export const JWT_SECRET: string =
-  process.env.SECRET_KEY || "defaultsecretkey2026";
+  process.env.JWT_SECRET || "nutrinepal-secret-key-2026";

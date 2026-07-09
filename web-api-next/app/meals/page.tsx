@@ -45,7 +45,8 @@ export default function MealsPage() {
   const [consumedCarbs, setConsumedCarbs] = useState(0);
   const [consumedFats, setConsumedFats] = useState(0);
 
-  const mealTypes = ["All", "Breakfast", "Lunch", "Dinner", "Snacks"];
+  // ✅ FIXED: Changed "Snacks" to "Snack"
+  const mealTypes = ["All", "Breakfast", "Lunch", "Dinner", "Snack"];
 
   useEffect(() => {
     loadData();
@@ -136,14 +137,15 @@ export default function MealsPage() {
       });
     }
 
-    if (selectedMealType === "All" || selectedMealType === "Snacks") {
-      recommendations.push({
-        mealType: "Snacks",
-        targetCalories: snackTarget,
-        targetProtein: Math.round(remainingProtein * 0.10),
-        suggestedFoods: findFoodsForMeal(snackTarget, "Snacks"),
-      });
-    }
+    // ✅ FIXED: Changed "Snacks" to "Snack"
+    if (selectedMealType === "All" || selectedMealType === "Snack") {
+  recommendations.push({
+    mealType: "Snack",
+    targetCalories: snackTarget,
+    targetProtein: Math.round(remainingProtein * 0.10),
+    suggestedFoods: findFoodsForMeal(snackTarget, "Snacks"), // ✅ Search for "Snacks" category
+  });
+}
 
     return recommendations;
   };

@@ -36,8 +36,13 @@ export class UserService {
       throw new CustomHttpException(400, "Invalid credentials");
     }
 
+    // ✅ FIXED: Include role in the token payload
     const token = jwt.sign(
-      { id: user._id, email: user.email },
+      { 
+        id: user._id, 
+        email: user.email,
+        role: user.role  // ✅ This line was missing!
+      },
       JWT_SECRET,
       { expiresIn: "30d" }
     );
@@ -45,7 +50,7 @@ export class UserService {
     return { user, token };
   }
 
-  // NEW: Get user by ID (for Whoami)
+  // Get user by ID (for Whoami)
   async getUserById(userId: string) {
     const user = await userRepoInstance.findById(userId);
     if (!user) {
@@ -54,7 +59,7 @@ export class UserService {
     return user;
   }
 
-  // NEW: Update user profile
+  // Update user profile
   async updateUserProfile(userId: string, updateData: any, profileImage?: string) {
     const user = await userRepoInstance.findById(userId);
     if (!user) {
@@ -85,7 +90,7 @@ export class UserService {
     return updatedUser;
   }
 
-  // NEW: Change password
+  // Change password
   async changePassword(userId: string, oldPassword: string, newPassword: string) {
     const user = await userRepoInstance.findById(userId);
     if (!user) {

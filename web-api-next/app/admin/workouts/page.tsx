@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { fetchWorkoutsAction, createWorkoutAction, updateWorkoutAction, deleteWorkoutAction } from "./actions";
+import { toast } from "react-toastify";
+import Link from "next/link";
 
 interface Workout {
   _id: string;
@@ -10,249 +11,165 @@ interface Workout {
   duration: number;
   caloriesBurned: number;
   difficulty: string;
-  description?: string;
-  equipment?: string;
+  media?: Array<{ type: string; url: string }>;
+  createdAt: string;
 }
 
-export default function WorkoutManagementPage() {
+export default function WorkoutListPage() {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [editingWorkout, setEditingWorkout] = useState<Workout | null>(null);
-  const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-
-  const [formData, setFormData] = useState({
-    name: "",
-    category: "Cardio",
-    duration: 30,
-    caloriesBurned: 200,
-    difficulty: "Beginner",
-    description: "",
-    equipment: "",
-  });
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    loadWorkouts();
-  }, [search, categoryFilter]);
+    fetchWorkouts();
+  }, []);
 
-  const loadWorkouts = async () => {
-    setLoading(true);
+  const fetchWorkouts = async () => {
     try {
-      const result = await fetchWorkoutsAction(search, categoryFilter);
-      if (result.success) setWorkouts(result.data);
+      const response = await fetch("http://localhost:8089/api/v1/workouts");
+      const data = await response.json();
+      if (data.success) {
+        setWorkouts(data.data);
+      }
     } catch (error) {
-      console.error("Error loading workouts:", error);
+      console.error("Error fetching workouts:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOpenModal = (workout?: Workout) => {
-    if (workout) {
-      setEditingWorkout(workout);
-      setFormData({
-        name: workout.name,
-        category: workout.category,
-        duration: workout.duration,
-        caloriesBurned: workout.caloriesBurned,
-        difficulty: workout.difficulty,
-        description: workout.description || "",
-        equipment: workout.equipment || "",
-      });
-    } else {
-      setEditingWorkout(null);
-      setFormData({
-        name: "",
-        category: "Cardio",
-        duration: 30,
-        caloriesBurned: 200,
-        difficulty: "Beginner",
-        description: "",
-        equipment: "",
-      });
-    }
-    setShowModal(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const result = editingWorkout
-        ? await updateWorkoutAction(editingWorkout._id, formData)
-        : await createWorkoutAction(formData);
-
-      if (result.success) {
-        alert(editingWorkout ? "Workout updated!" : "Workout created!");
-        setShowModal(false);
-        loadWorkouts();
-      } else {
-        alert(result.message || "Failed to save workout");
-      }
-    } catch (error) {
-      alert("An error occurred");
-    }
-  };
-
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this workout?")) return;
+
     try {
-      const result = await deleteWorkoutAction(id);
-      if (result.success) {
-        alert("Workout deleted!");
-        loadWorkouts();
+      const response = await fetch(`http://localhost:8089/api/v1/workouts/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        toast.success("Workout deleted successfully!");
+        fetchWorkouts();
       } else {
-        alert(result.message || "Failed to delete workout");
+        toast.error(data.message || "Failed to delete workout");
       }
     } catch (error) {
-      alert("An error occurred");
+      toast.error("Failed to delete workout");
     }
   };
 
-  const categories = ["Cardio", "Strength", "Flexibility", "Yoga", "HIIT", "Sports", "Other"];
-  const difficulties = ["Beginner", "Intermediate", "Advanced"];
+  const filteredWorkouts = workouts.filter(workout =>
+    workout.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading) {
+    return <div className="text-center py-12">Loading workouts...</div>;
+  }
 
   return (
-    <div className="space-y-6">
+    <div>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Workout Management</h1>
-          <p className="text-sm text-gray-600 mt-1">Manage the exercise database for user routines</p>
+          <p className="text-sm text-gray-600">Manage the workout library</p>
         </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+        <Link
+          href="/admin/workouts/add"
+          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
         >
           + Add New Workout
-        </button>
+        </Link>
       </div>
 
-      {/* Search and Filter */}
-      <div className="flex gap-4">
+      {/* Search */}
+      <div className="mb-6">
         <input
           type="text"
           placeholder="Search workouts..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-700 focus:border-green-500 focus:ring-2 focus:ring-green-200"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2"
         />
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-green-500 focus:ring-2 focus:ring-green-200"
-        >
-          <option value="all" className="text-gray-900">All Categories</option>
-          {categories.map((cat) => (
-            <option key={cat} value={cat} className="text-gray-900">{cat}</option>
-          ))}
-        </select>
       </div>
 
-      {/* Workouts Table */}
-      <div className="rounded-lg border border-gray-200 bg-white">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="border-b border-gray-200 bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-900">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-900">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-900">Duration</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-900">Calories</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-900">Difficulty</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-900">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {loading ? (
-                <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-500">Loading workouts...</td></tr>
-              ) : workouts.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-500">No workouts found.</td></tr>
-              ) : (
-                workouts.map((workout) => (
+      {/* Table */}
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        {filteredWorkouts.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            No workouts found. <Link href="/admin/workouts/add" className="text-green-600 hover:underline">Add one!</Link>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duration</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Calories</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Difficulty</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredWorkouts.map((workout) => (
                   <tr key={workout._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{workout.name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      <span className="rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-700">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        {workout.media && workout.media.length > 0 ? (
+                          <img
+                            src={`http://localhost:8089${workout.media[0].url}`}
+                            alt={workout.name}
+                            className="w-12 h-12 rounded-lg object-cover border border-gray-200"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
+                            No Img
+                          </div>
+                        )}
+                        <div className="text-sm font-medium text-gray-900">{workout.name}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
                         {workout.category}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">{workout.duration} mins</td>
-                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">{workout.caloriesBurned} kcal</td>
-                    <td className="px-6 py-4 text-sm text-gray-900">{workout.difficulty}</td>
-                    <td className="px-6 py-4 text-right">
-                      <button onClick={() => handleOpenModal(workout)} className="mr-2 text-sm font-medium text-blue-600 hover:text-blue-700">Edit</button>
-                      <button onClick={() => handleDelete(workout._id)} className="text-sm font-medium text-red-600 hover:text-red-700">Delete</button>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{workout.duration} mins</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{workout.caloriesBurned} kcal</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        workout.difficulty === 'Beginner' ? 'bg-green-100 text-green-800' :
+                        workout.difficulty === 'Intermediate' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {workout.difficulty}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <Link 
+                        href={`/admin/workouts/${workout._id}/edit`}
+                        className="text-blue-600 hover:text-blue-900 mr-3"
+                      >
+                        Edit
+                      </Link>
+                      <button 
+                        onClick={() => handleDelete(workout._id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Add/Edit Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">{editingWorkout ? "Edit Workout" : "Add New Workout"}</h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Workout Name *</label>
-                <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200" placeholder="e.g., Morning Jog" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">Category *</label>
-                  <select required value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200">
-                    {categories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">Difficulty *</label>
-                  <select required value={formData.difficulty} onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })} className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200">
-                    {difficulties.map((d) => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">Duration (mins) *</label>
-                  <input type="number" required min="1" value={formData.duration} onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })} className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200" />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">Calories Burned *</label>
-                  <input type="number" required min="0" value={formData.caloriesBurned} onChange={(e) => setFormData({ ...formData, caloriesBurned: parseInt(e.target.value) || 0 })} className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200" />
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Equipment (Optional)</label>
-                <input type="text" value={formData.equipment} onChange={(e) => setFormData({ ...formData, equipment: e.target.value })} className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200" placeholder="e.g., Dumbbells, Mat, None" />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Description</label>
-                <textarea rows={3} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200" placeholder="Brief description..." />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4">
-                <button type="button" onClick={() => setShowModal(false)} className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
-                <button type="submit" className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">{editingWorkout ? "Update Workout" : "Add Workout"}</button>
-              </div>
-            </form>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

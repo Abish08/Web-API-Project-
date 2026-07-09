@@ -5,34 +5,26 @@ import { AuthRequest } from "../middlewares/auth.middleware";
 const foodService = new FoodService();
 
 export class FoodController {
-  // Create new food
-  async createFood(req: Request, res: Response) {
-    try {
-      const foodData = req.body;
-      
-      // Add createdBy if user is authenticated
-      if ((req as AuthRequest).user) {
-        foodData.createdBy = (req as AuthRequest).user!.id;
-      }
-
-      const food = await foodService.createFood(foodData);
-      res.status(201).json({ success: true, data: food });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  }
-
-  //  Create food with images
+  // Create food with images and recipe
   async createFoodWithImages(req: Request, res: Response) {
     try {
       const foodData: any = req.body;
       
+      // Parse recipe if it's a string (from FormData)
+      if (typeof foodData.recipe === 'string') {
+        try {
+          foodData.recipe = JSON.parse(foodData.recipe);
+        } catch (e) {
+          // Keep as is if parsing fails
+        }
+      }
+      
       // Add createdBy if user is authenticated
       if ((req as AuthRequest).user) {
         foodData.createdBy = (req as AuthRequest).user!.id;
       }
 
-      // ✅ NEW: Handle uploaded images
+      // Handle uploaded images
       if (req.files && Array.isArray(req.files)) {
         foodData.images = (req.files as Express.Multer.File[]).map(file => ({
           url: `/uploads/${file.filename}`,
@@ -87,11 +79,34 @@ export class FoodController {
     }
   }
 
-  // Update food
+  // Update food with image support
   async updateFood(req: Request, res: Response) {
     try {
       const id: string = req.params.id as string;
-      const updateData = req.body;
+      const updateData: any = req.body;
+      
+      // Parse recipe if it's a string (from FormData)
+      if (typeof updateData.recipe === 'string') {
+        try {
+          updateData.recipe = JSON.parse(updateData.recipe);
+        } catch (e) {
+          // Keep as is if parsing fails
+        }
+      }
+
+      // Handle uploaded images if provided
+      if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+        updateData.images = (req.files as Express.Multer.File[]).map(file => ({
+          url: `/uploads/${file.filename}`,
+          publicId: file.filename,
+        }));
+        
+        // Set first image as thumbnail
+        if (updateData.images.length > 0) {
+          updateData.thumbnail = updateData.images[0];
+        }
+      }
+
       const food = await foodService.updateFood(id, updateData);
       res.status(200).json({ success: true, data: food });
     } catch (error: any) {

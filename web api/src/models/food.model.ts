@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IFood extends Document {
   name: string;
   category: string;
-  servingSize: number; // in grams
+  servingSize: number;
   calories: number;
   protein: number;
   carbs: number;
@@ -12,7 +12,18 @@ export interface IFood extends Document {
   sugar?: number;
   sodium?: number;
   description?: string;
-  // ✅ NEW: Image fields
+  
+  // Recipe fields
+  recipe?: {
+    ingredients: string[];
+    instructions: string[];
+    prepTime: number; // in minutes
+    cookTime: number; // in minutes
+    servings: number;
+    difficulty: "Easy" | "Medium" | "Hard";
+  };
+  
+  //  Images
   images?: Array<{
     url: string;
     publicId: string;
@@ -21,10 +32,10 @@ export interface IFood extends Document {
     url: string;
     publicId: string;
   };
+  
   isApproved: boolean;
   createdBy?: mongoose.Types.ObjectId;
 }
-
 
 const foodSchema = new Schema<IFood>(
   {
@@ -43,7 +54,22 @@ const foodSchema = new Schema<IFood>(
     sugar: { type: Number, default: 0, min: 0 },
     sodium: { type: Number, default: 0, min: 0 },
     description: { type: String, trim: true },
-    //  Image fields in schema
+    
+    //  Recipe fields
+    recipe: {
+      ingredients: [{ type: String }],
+      instructions: [{ type: String }],
+      prepTime: { type: Number, default: 0 },
+      cookTime: { type: Number, default: 0 },
+      servings: { type: Number, default: 1 },
+      difficulty: { 
+        type: String, 
+        enum: ["Easy", "Medium", "Hard"],
+        default: "Medium"
+      },
+    },
+    
+    // Images
     images: [{
       url: String,
       publicId: String,
@@ -52,15 +78,13 @@ const foodSchema = new Schema<IFood>(
       url: String,
       publicId: String,
     },
+    
     isApproved: { type: Boolean, default: true },
     createdBy: { type: Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );
 
-
-
-// Index for faster searches
 foodSchema.index({ name: "text", category: 1 });
 
 export const Food = mongoose.model<IFood>("Food", foodSchema);

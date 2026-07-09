@@ -17,7 +17,9 @@ router.get("/:id", (req, res) => controller.getFoodById(req, res));
 router.post("/", authMiddleware, adminMiddleware, upload.array("images", 5), (req, res) => 
   controller.createFoodWithImages(req, res)
 );
-router.put("/:id", authMiddleware, adminMiddleware, (req, res) => controller.updateFood(req, res));
+router.put("/:id", authMiddleware, adminMiddleware, upload.array("images", 5), (req, res) => 
+  controller.updateFood(req, res)
+);
 router.delete("/:id", authMiddleware, adminMiddleware, (req, res) => controller.deleteFood(req, res));
 
 // Stats route
