@@ -1,7 +1,9 @@
 // Main entry point - starts the Express server
 import expressApp from "./src/app";
-import { SERVER_PORT } from "./src/configs/constant";
+import { requireEnv, SERVER_PORT } from "./src/configs/constant";
 import { initializeDatabase } from "./src/database/mongodb";
+
+requireEnv();
 
 // Connect to MongoDB database
 initializeDatabase();
