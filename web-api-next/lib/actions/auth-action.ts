@@ -4,6 +4,8 @@ import { login, register, whoami, updateProfile, changePassword } from "@/lib/ap
 import { setTokenCookie, storeUserData, clearAuthCookies } from "@/lib/cookies";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getErrorMessage } from "@/lib/api/types";
+import { RegistrationFormData } from "@/app/(auth)/_components/schema";
 
 // LOGIN
 export const handleLoginUser = async (data: { email: string; password: string }) => {
@@ -33,7 +35,7 @@ export const handleLoginUser = async (data: { email: string; password: string })
 };
 
 // REGISTER
-export const handleRegisterUser = async (data: any) => {
+export const handleRegisterUser = async (data: RegistrationFormData) => {
   try {
     const response = await register(data);
     if (response.success) {
@@ -44,8 +46,8 @@ export const handleRegisterUser = async (data: any) => {
       };
     }
     return { success: false, message: response.message || "Registration failed" };
-  } catch (error: any) {
-    return { success: false, message: error.message || "Registration action failed" };
+  } catch (error: unknown) {
+    return { success: false, message: getErrorMessage(error, "Registration action failed") };
   }
 };
 
@@ -57,8 +59,8 @@ export const handleWhoami = async () => {
       return { success: true, data: response.data };
     }
     return { success: false, message: response.message || "Whoami failed" };
-  } catch (error: any) {
-    return { success: false, message: error.message || "Whoami action failed" };
+  } catch (error: unknown) {
+    return { success: false, message: getErrorMessage(error, "Whoami action failed") };
   }
 };
 
@@ -76,8 +78,8 @@ export const handleUpdateProfile = async (formData: FormData) => {
       };
     }
     return { success: false, message: response.message || "Update profile failed" };
-  } catch (error: any) {
-    return { success: false, message: error.message || "Update profile action failed" };
+  } catch (error: unknown) {
+    return { success: false, message: getErrorMessage(error, "Update profile action failed") };
   }
 };
 
@@ -92,8 +94,8 @@ export const handleChangePassword = async (data: { oldPassword: string; newPassw
       };
     }
     return { success: false, message: response.message || "Change password failed" };
-  } catch (error: any) {
-    return { success: false, message: error.message || "Change password action failed" };
+  } catch (error: unknown) {
+    return { success: false, message: getErrorMessage(error, "Change password action failed") };
   }
 };
 

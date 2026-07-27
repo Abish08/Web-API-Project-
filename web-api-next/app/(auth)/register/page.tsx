@@ -7,6 +7,7 @@ import { RegistrationFormSchema, type RegistrationFormData } from "../_component
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { handleRegisterUser } from "@/lib/actions/auth-action";
+import { getErrorMessage } from "@/lib/api/types";
 
 export default function RegisterPage() {
   const [isSubmitting, startTransition] = useTransition();
@@ -37,8 +38,8 @@ export default function RegisterPage() {
         } else {
           setErrorMessage(result.message || "Registration failed");
         }
-      } catch (error: any) {
-        setErrorMessage(error?.message || "Registration failed");
+      } catch (error: unknown) {
+        setErrorMessage(getErrorMessage(error, "Registration failed"));
       }
     });
   };
@@ -59,7 +60,7 @@ export default function RegisterPage() {
             Create Account
           </h1>
           <p className="text-center text-gray-500 text-sm mb-8">
-            Join Nepal's elite health community today.
+            Join Nepal&apos;s elite health community today.
           </p>
 
           <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">

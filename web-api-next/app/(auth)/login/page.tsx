@@ -7,6 +7,7 @@ import { LoginFormSchema, type LoginFormDataType } from "../_components/schema";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { handleLoginUser } from "@/lib/actions/auth-action";
+import { getErrorMessage } from "@/lib/api/types";
 
 export default function LoginPage() {
   const [isSubmitting, startTransition] = useTransition();
@@ -29,8 +30,8 @@ export default function LoginPage() {
         } else {
           setErrorMessage(result.message || "Login failed");
         }
-      } catch (error: any) {
-        setErrorMessage(error?.message || "Login failed");
+      } catch (error: unknown) {
+        setErrorMessage(getErrorMessage(error, "Login failed"));
       }
     });
   };
@@ -120,7 +121,7 @@ export default function LoginPage() {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link href="/register" className="text-orange-600 font-semibold hover:text-orange-700">
                 Register
               </Link>
