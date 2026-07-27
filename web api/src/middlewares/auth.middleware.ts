@@ -1,26 +1,21 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../configs/constant"; // ✅ Import the constant
+import { JWT_SECRET } from "../configs/constant";
+import { AuthenticatedRequest, AuthenticatedUser } from "../types/auth.type";
 
-export interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    role: string;
-  };
-}
+type JwtPayload = AuthenticatedUser & jwt.JwtPayload;
 
-export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
+export type AuthRequest = AuthenticatedRequest;
+
+export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     let token: string | undefined;
-
-    // Check Authorization header first
     const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith("Bearer ")) {
+
+    if (authHeader?.startsWith("Bearer ")) {
       token = authHeader.substring(7);
     }
 
-    // If no token in header, check cookies
     if (!token && req.cookies) {
       token = req.cookies.auth_token;
     }
@@ -32,9 +27,15 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
       });
     }
 
-    // ✅ FIXED: Use the same JWT_SECRET constant
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
-    
+    if (!JWT_SECRET) {
+      return res.status(500).json({
+        success: false,
+        message: "Authentication is not configured",
+      });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+
     req.user = {
       id: decoded.id,
       email: decoded.email,
@@ -42,8 +43,7 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
     };
 
     next();
-  } catch (error) {
-    console.error("Token verification failed:", error);
+  } catch {
     return res.status(401).json({
       success: false,
       message: "Invalid or expired token",
