@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { handleLogout } from "@/lib/actions/auth-action";
+import { HealthProfile as ApiHealthProfile } from "@/lib/api/types";
+import { apiUrl, API_BASE_URL } from "@/lib/api/server";
 
 interface UserData {
   _id: string;
@@ -12,31 +14,21 @@ interface UserData {
   username: string;
   profilePicture?: {
     url: string;
-    publicId: string;
+    publicId?: string;
   };
-  createdAt: string;
+  createdAt?: string;
 }
 
-interface HealthProfile {
+type EditHealthProfile = {
   weight: number;
   height: number;
   age: number;
-  gender: string;
-  activityLevel: string;
-  goal: string;
-  bmi: number;
-  bmr: number;
-  tdee: number;
-  targetCalories: number;
-  macros: {
-    protein: number;
-    carbs: number;
-    fats: number;
-  };
-  updatedAt: string;
-}
+  gender: "male" | "female";
+  activityLevel: "sedentary" | "light" | "moderate" | "active" | "very_active";
+  goal: "lose" | "maintain" | "gain";
+};
 
-export default function ProfileClient({ userData, healthProfile, token }: { userData: UserData; healthProfile: any; token: string }) {
+export default function ProfileClient({ userData, healthProfile, token }: { userData: UserData; healthProfile: ApiHealthProfile | null; token: string }) {
   const [isEditing, setIsEditing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -44,7 +36,7 @@ export default function ProfileClient({ userData, healthProfile, token }: { user
     userData?.profilePicture?.url || null
   );
   
-  const [editData, setEditData] = useState({
+  const [editData, setEditData] = useState<EditHealthProfile>({
     weight: healthProfile?.weight || 70,
     height: healthProfile?.height || 170,
     age: healthProfile?.age || 25,
@@ -141,7 +133,7 @@ export default function ProfileClient({ userData, healthProfile, token }: { user
       const formData = new FormData();
       formData.append("profilePicture", file);
 
-      const response = await fetch("http://localhost:8089/api/v1/upload/profile-picture", {
+      const response = await fetch(apiUrl("/api/v1/upload/profile-picture"), {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -168,7 +160,7 @@ export default function ProfileClient({ userData, healthProfile, token }: { user
   const handleUpdateHealthProfile = async () => {
     setSaving(true);
     try {
-      const res = await fetch("http://localhost:8089/api/v1/health-profile", {
+      const res = await fetch(apiUrl("/api/v1/health-profile"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -184,7 +176,7 @@ export default function ProfileClient({ userData, healthProfile, token }: { user
       } else {
         alert(data.message || "Failed to update profile");
       }
-    } catch (error) {
+    } catch {
       alert("Failed to update profile");
     } finally {
       setSaving(false);
@@ -239,8 +231,9 @@ export default function ProfileClient({ userData, healthProfile, token }: { user
               <div className="flex items-center gap-6">
                 <div className="relative">
                   {localProfilePicture ? (
+                    /* eslint-disable-next-line @next/next/no-img-element -- User-uploaded profile images are served by the API host. */
                     <img
-                      src={`http://localhost:8089${localProfilePicture}`}
+                      src={`${API_BASE_URL}${localProfilePicture}`}
                       alt="Profile"
                       className="w-24 h-24 rounded-full object-cover border-4 border-green-500"
                     />
@@ -297,7 +290,7 @@ export default function ProfileClient({ userData, healthProfile, token }: { user
                 <div>
                   <h2 className="text-xl font-bold text-gray-900">Health Profile</h2>
                   <p className="text-sm text-gray-500 mt-1">
-                    {healthProfile ? `Last updated: ${new Date(healthProfile.updatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}` : 'No data yet'}
+                    {healthProfile?.updatedAt ? `Last updated: ${new Date(healthProfile.updatedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}` : "No data yet"}
                   </p>
                 </div>
                 <button 
@@ -416,7 +409,7 @@ export default function ProfileClient({ userData, healthProfile, token }: { user
                       <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
                       <select
                         value={editData.gender}
-                        onChange={(e) => setEditData({ ...editData, gender: e.target.value })}
+                        onChange={(e) => setEditData({ ...editData, gender: e.target.value as EditHealthProfile["gender"] })}
                         className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200"
                       >
                         <option value="male">Male</option>
@@ -427,7 +420,7 @@ export default function ProfileClient({ userData, healthProfile, token }: { user
                       <label className="block text-sm font-medium text-gray-700 mb-2">Activity Level</label>
                       <select
                         value={editData.activityLevel}
-                        onChange={(e) => setEditData({ ...editData, activityLevel: e.target.value })}
+                        onChange={(e) => setEditData({ ...editData, activityLevel: e.target.value as EditHealthProfile["activityLevel"] })}
                         className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200"
                       >
                         <option value="sedentary">Sedentary (little or no exercise)</option>
@@ -441,7 +434,7 @@ export default function ProfileClient({ userData, healthProfile, token }: { user
                       <label className="block text-sm font-medium text-gray-700 mb-2">Goal</label>
                       <select
                         value={editData.goal}
-                        onChange={(e) => setEditData({ ...editData, goal: e.target.value })}
+                        onChange={(e) => setEditData({ ...editData, goal: e.target.value as EditHealthProfile["goal"] })}
                         className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200"
                       >
                         <option value="lose">Lose Weight</option>

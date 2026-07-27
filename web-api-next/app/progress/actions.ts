@@ -1,6 +1,7 @@
 "use server";
 
 import { getTokenCookie } from "@/lib/cookies";
+import { apiUrl } from "@/lib/api/server";
 
 export async function getCalorieHistoryAction(days: number = 30) {
   try {
@@ -8,14 +9,14 @@ export async function getCalorieHistoryAction(days: number = 30) {
     if (!token) return { success: false, message: "Not authenticated" };
 
     const response = await fetch(
-      `http://localhost:8089/api/v1/progress/history/calories?days=${days}`,
+      apiUrl(`/api/v1/progress/history/calories?days=${days}`),
       {
         headers: { "Authorization": `Bearer ${token}` },
         cache: "no-store",
       }
     );
     return await response.json();
-  } catch (error) {
+  } catch {
     return { success: false, message: "Failed to fetch calorie history" };
   }
 }
@@ -26,14 +27,14 @@ export async function getWorkoutHistoryAction(days: number = 30) {
     if (!token) return { success: false, message: "Not authenticated" };
 
     const response = await fetch(
-      `http://localhost:8089/api/v1/progress/history/workouts?days=${days}`,
+      apiUrl(`/api/v1/progress/history/workouts?days=${days}`),
       {
         headers: { "Authorization": `Bearer ${token}` },
         cache: "no-store",
       }
     );
     return await response.json();
-  } catch (error) {
+  } catch {
     return { success: false, message: "Failed to fetch workout history" };
   }
 }
@@ -43,12 +44,12 @@ export async function getSummaryAction() {
     const token = await getTokenCookie();
     if (!token) return { success: false, message: "Not authenticated" };
 
-    const response = await fetch("http://localhost:8089/api/v1/progress/summary", {
+    const response = await fetch(apiUrl("/api/v1/progress/summary"), {
       headers: { "Authorization": `Bearer ${token}` },
       cache: "no-store",
     });
     return await response.json();
-  } catch (error) {
+  } catch {
     return { success: false, message: "Failed to fetch summary" };
   }
 }

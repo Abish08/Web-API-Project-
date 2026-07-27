@@ -2,6 +2,16 @@ import { getUserData, getTokenCookie } from "@/lib/cookies";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import HealthProfileForm from "@/components/HealthProfileForm";
+import { apiUrl } from "@/lib/api/server";
+
+type HealthProfileFormData = {
+  weight: number;
+  height: number;
+  age: number;
+  gender: "male" | "female";
+  activityLevel: "sedentary" | "light" | "moderate" | "active" | "very_active";
+  goal: "lose" | "maintain" | "gain";
+};
 
 export default async function EditProfilePage() {
   const userData = await getUserData();
@@ -11,10 +21,10 @@ export default async function EditProfilePage() {
   }
 
   // Fetch existing health profile to pre-fill the form
-  let initialData = null;
+  let initialData: HealthProfileFormData | null = null;
   try {
     const token = await getTokenCookie();
-    const response = await fetch("http://localhost:8089/api/v1/health-profile", {
+    const response = await fetch(apiUrl("/api/v1/health-profile"), {
       headers: {
         "Authorization": `Bearer ${token}`,
       },
@@ -32,16 +42,16 @@ export default async function EditProfilePage() {
         goal: data.data.goal,
       };
     }
-  } catch (error) {
-    console.error("Failed to fetch health profile:", error);
+  } catch {
+    initialData = null;
   }
 
-  const saveHealthProfile = async (data: any) => {
+  const saveHealthProfile = async (data: HealthProfileFormData) => {
     "use server";
 
     const token = await getTokenCookie();
 
-    const response = await fetch("http://localhost:8089/api/v1/health-profile", {
+    const response = await fetch(apiUrl("/api/v1/health-profile"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

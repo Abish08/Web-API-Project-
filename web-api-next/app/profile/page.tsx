@@ -1,6 +1,7 @@
 import { getUserData, getTokenCookie } from "@/lib/cookies";
 import { redirect } from "next/navigation";
 import ProfileClient from "./ProfileClient";
+import { apiUrl } from "@/lib/api/server";
 
 export default async function ProfilePage() {
   // 1. Get the secure token and user data on the server
@@ -15,7 +16,7 @@ export default async function ProfilePage() {
   // 3. Fetch health profile from backend using the server-side token
   let healthProfile = null;
   try {
-    const response = await fetch("http://localhost:8089/api/v1/health-profile", {
+    const response = await fetch(apiUrl("/api/v1/health-profile"), {
       headers: {
         "Authorization": `Bearer ${token}`,
       },

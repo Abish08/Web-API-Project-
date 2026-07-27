@@ -2,10 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { handleUpdateProfile } from "@/lib/actions/auth-action";
 import { z } from "zod";
 import Link from "next/link";
+import { getErrorMessage, User } from "@/lib/api/types";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/avif"];
@@ -28,7 +29,7 @@ export const updateProfileSchema = z.object({
 
 export type UpdateProfileData = z.infer<typeof updateProfileSchema>;
 
-export default function UpdateProfileForm({ user }: { user: any }) {
+export default function UpdateProfileForm({ user }: { user: User }) {
   const {
     register,
     handleSubmit,
@@ -46,7 +47,6 @@ export default function UpdateProfileForm({ user }: { user: any }) {
 
   const [error, setError] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageChange = (file: File | undefined, onChange: (file: File | undefined) => void) => {
     if (file) {
@@ -64,9 +64,6 @@ export default function UpdateProfileForm({ user }: { user: any }) {
   const handleDismissImage = (onChange?: (file: File | undefined) => void) => {
     setPreviewImage(null);
     onChange?.(undefined);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
   };
 
   const onSubmit = async (data: UpdateProfileData) => {
@@ -86,9 +83,10 @@ export default function UpdateProfileForm({ user }: { user: any }) {
       }
       handleDismissImage();
       alert("Profile updated successfully");
-    } catch (error: any) {
-      alert(error.message || "Profile update failed");
-      setError(error.message || "Profile update failed");
+    } catch (error: unknown) {
+      const message = getErrorMessage(error, "Profile update failed");
+      alert(message);
+      setError(message);
     }
   };
 
@@ -108,6 +106,7 @@ export default function UpdateProfileForm({ user }: { user: any }) {
         <div className="flex justify-center mb-6">
           {previewImage ? (
             <div className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element -- Preview image is a local data URL before upload. */}
               <img
                 src={previewImage}
                 alt="Profile Preview"
@@ -142,7 +141,6 @@ export default function UpdateProfileForm({ user }: { user: any }) {
             control={control}
             render={({ field: { onChange } }) => (
               <input
-                ref={fileInputRef}
                 type="file"
                 onChange={(e) => handleImageChange(e.target.files?.[0], onChange)}
                 accept=".jpg,.jpeg,.png,.webp,.avif"
