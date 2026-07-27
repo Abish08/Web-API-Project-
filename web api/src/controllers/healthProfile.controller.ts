@@ -1,32 +1,34 @@
 import { Request, Response } from "express";
 import { HealthProfileService } from "../services/healthProfile.service";
 import { AuthRequest } from "../middlewares/auth.middleware";
+import { z } from "zod";
 
 const healthProfileService = new HealthProfileService();
+
+const healthProfileSchema = z.object({
+  weight: z.coerce.number().min(20).max(300),
+  height: z.coerce.number().min(80).max(250),
+  age: z.coerce.number().int().min(10).max(120),
+  gender: z.enum(["male", "female"]),
+  activityLevel: z.enum(["sedentary", "light", "moderate", "active", "very_active"]),
+  goal: z.enum(["lose", "maintain", "gain"]),
+});
 
 export class HealthProfileController {
   async createOrUpdateProfile(req: Request, res: Response) {
     try {
       const userId = (req as AuthRequest).user!.id;
-      const { weight, height, age, gender, activityLevel, goal } = req.body;
+      const validation = healthProfileSchema.safeParse(req.body);
 
-      // Validate required fields
-      if (!weight || !height || !age || !gender || !activityLevel || !goal) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "All fields are required" 
+      if (!validation.success) {
+        return res.status(400).json({
+          success: false,
+          message: z.prettifyError(validation.error),
         });
       }
 
       // Calculate and update profile
-      const profile = await healthProfileService.calculateAndUpdateProfile(userId, {
-        weight: parseFloat(weight),
-        height: parseFloat(height),
-        age: parseInt(age),
-        gender,
-        activityLevel,
-        goal,
-      });
+      const profile = await healthProfileService.calculateAndUpdateProfile(userId, validation.data);
 
       res.status(200).json({ 
         success: true, 

@@ -11,6 +11,7 @@ const controller = new FoodController();
 router.get("/", (req, res) => controller.getAllFoods(req, res));
 router.get("/search", (req, res) => controller.searchFoods(req, res));
 router.get("/category/:category", (req, res) => controller.getFoodsByCategory(req, res));
+router.get("/stats/total", authMiddleware, adminMiddleware, (req, res) => controller.getTotalFoodsCount(req, res));
 router.get("/:id", (req, res) => controller.getFoodById(req, res));
 
 //  Admin-only routes with image upload support
@@ -21,8 +22,5 @@ router.put("/:id", authMiddleware, adminMiddleware, upload.array("images", 5), (
   controller.updateFood(req, res)
 );
 router.delete("/:id", authMiddleware, adminMiddleware, (req, res) => controller.deleteFood(req, res));
-
-// Stats route
-router.get("/stats/total", authMiddleware, adminMiddleware, (req, res) => controller.getTotalFoodsCount(req, res));
 
 export default router;

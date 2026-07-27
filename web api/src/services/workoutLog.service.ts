@@ -11,6 +11,8 @@ export class WorkoutLogService {
   }
 
   async createLog(userId: string, workoutId: string, duration: number, date: Date) {
+    if (duration <= 0) throw new Error("Duration must be greater than zero");
+
     const workout = await Workout.findById(workoutId);
     if (!workout) throw new Error("Workout not found");
 
@@ -33,8 +35,8 @@ export class WorkoutLogService {
     return await this.repo.findByUserAndDate(userId, date);
   }
 
-  async deleteLog(id: string) {
-    const deleted = await this.repo.delete(id);
+  async deleteLog(id: string, userId: string) {
+    const deleted = await this.repo.delete(id, userId);
     if (!deleted) throw new Error("Log not found or delete failed");
     return true;
   }

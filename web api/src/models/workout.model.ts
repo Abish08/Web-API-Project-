@@ -8,6 +8,13 @@ export interface IWorkout extends Document {
   difficulty: string; // Beginner, Intermediate, Advanced
   description?: string;
   equipment?: string;
+  goalTags?: string[];
+  muscleGroups?: string[];
+  sets?: number;
+  reps?: string;
+  restSeconds?: number;
+  instructions?: string[];
+  isActive: boolean;
   //  Media field for images/videos
   media?: Array<{
     type: "image" | "video";
@@ -36,6 +43,12 @@ const workoutSchema = new Schema<IWorkout>(
     },
     description: { type: String, trim: true },
     equipment: { type: String, trim: true },
+    goalTags: [{ type: String, enum: ["lose", "maintain", "gain"] }],
+    muscleGroups: [{ type: String, trim: true }],
+    sets: { type: Number, min: 0 },
+    reps: { type: String, trim: true },
+    restSeconds: { type: Number, min: 0 },
+    instructions: [{ type: String, trim: true }],
     // ✅ NEW: Media field in schema
     media: [{
       type: { type: String, enum: ["image", "video"], required: true },
@@ -44,6 +57,7 @@ const workoutSchema = new Schema<IWorkout>(
       thumbnail: String,
     }],
     isApproved: { type: Boolean, default: true },
+    isActive: { type: Boolean, default: true },
     createdBy: { type: Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }

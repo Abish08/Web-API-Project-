@@ -11,6 +11,7 @@ const controller = new WorkoutController();
 router.get("/", (req, res) => controller.getAllWorkouts(req, res));
 router.get("/search", (req, res) => controller.searchWorkouts(req, res));
 router.get("/category/:category", (req, res) => controller.getWorkoutsByCategory(req, res));
+router.get("/stats/total", authMiddleware, adminMiddleware, (req, res) => controller.getTotalWorkoutsCount(req, res));
 router.get("/:id", (req, res) => controller.getWorkoutById(req, res));
 
 // Admin-only routes - NOTE: using upload.array for images only
@@ -21,8 +22,5 @@ router.put("/:id", authMiddleware, adminMiddleware, upload.array("images", 5), (
   controller.updateWorkout(req, res)
 );
 router.delete("/:id", authMiddleware, adminMiddleware, (req, res) => controller.deleteWorkout(req, res));
-
-// Stats route
-router.get("/stats/total", authMiddleware, adminMiddleware, (req, res) => controller.getTotalWorkoutsCount(req, res));
 
 export default router;

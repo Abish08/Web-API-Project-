@@ -22,7 +22,7 @@ export const registerUser = async (req: Request, res: Response) => {
     const newUser = await userServiceInstance.registerNewUser(validationResult.data);
     return ResponseFormatter.successResponse(res, newUser, "Membership created successfully");
   } catch (error: any) {
-    return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
+    return ResponseFormatter.errorResponse(res, error.message, error.statusCode || 500);
   }
 };
 
@@ -45,7 +45,7 @@ export const loginUser = async (req: Request, res: Response) => {
       "Access granted"
     );
   } catch (error: any) {
-    return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
+    return ResponseFormatter.errorResponse(res, error.message, error.statusCode || 500);
   }
 };
 
@@ -63,7 +63,7 @@ export const whoami = async (req: AuthRequest, res: Response) => {
     
     return ResponseFormatter.successResponse(res, userData, "User details fetched");
   } catch (error: any) {
-    return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
+    return ResponseFormatter.errorResponse(res, error.message, error.statusCode || 500);
   }
 };
 
@@ -87,7 +87,7 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
 
     return ResponseFormatter.successResponse(res, userData, "Profile updated successfully");
   } catch (error: any) {
-    return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
+    return ResponseFormatter.errorResponse(res, error.message, error.statusCode || 500);
   }
 };
 
@@ -116,6 +116,6 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
 
     return ResponseFormatter.successResponse(res, result, result.message);
   } catch (error: any) {
-    return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
+    return ResponseFormatter.errorResponse(res, error.message, error.statusCode || 500);
   }
 };

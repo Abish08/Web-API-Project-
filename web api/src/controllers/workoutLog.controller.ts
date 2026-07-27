@@ -16,7 +16,7 @@ export class WorkoutLogController {
 
       const logDate = date ? new Date(date) : new Date();
       const log = await workoutLogService.createLog(userId, workoutId, duration, logDate);
-      
+
       res.status(201).json({ success: true, data: log });
     } catch (error: any) {
       res.status(400).json({ success: false, message: error.message });
@@ -40,10 +40,10 @@ export class WorkoutLogController {
 
   async deleteLog(req: Request, res: Response) {
     try {
-      // ✅ Fix: Explicitly cast to string to avoid TS errors
-      const id: string = req.params.id as string; 
-      
-      await workoutLogService.deleteLog(id);
+      const userId = (req as AuthRequest).user!.id;
+      const id = req.params.id as string;
+
+      await workoutLogService.deleteLog(id, userId);
       res.status(200).json({ success: true, message: "Log deleted successfully" });
     } catch (error: any) {
       res.status(400).json({ success: false, message: error.message });

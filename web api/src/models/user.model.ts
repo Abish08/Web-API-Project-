@@ -23,7 +23,7 @@ const UserSchema: Schema = new Schema(
     lastName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     username: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    password: { type: String, required: true, select: false },
     role: { 
       type: String, 
       enum: ["admin", "user"], 
@@ -37,5 +37,19 @@ const UserSchema: Schema = new Schema(
   },
   { timestamps: true }
 );
+
+UserSchema.set("toJSON", {
+  transform: (_doc, ret) => {
+    delete ret.password;
+    return ret;
+  },
+});
+
+UserSchema.set("toObject", {
+  transform: (_doc, ret) => {
+    delete ret.password;
+    return ret;
+  },
+});
 
 export const UserCollection = mongoose.model<IUserDocument>("User", UserSchema);

@@ -2,8 +2,8 @@ import { UserRepositoryMongo } from "../repositories/user.repository";
 import { RegisterUserDTO, AuthenticateUserDTO } from "../dtos/user.dto";
 import { CustomHttpException } from "../exceptions/http-exception";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../configs/constant";
+import jwt, { SignOptions } from "jsonwebtoken";
+import { JWT_EXPIRES_IN, JWT_SECRET } from "../configs/constant";
 
 const userRepoInstance = new UserRepositoryMongo();
 
@@ -43,8 +43,8 @@ export class UserService {
         email: user.email,
         role: user.role  // ✅ This line was missing!
       },
-      JWT_SECRET,
-      { expiresIn: "30d" }
+      JWT_SECRET!,
+      { expiresIn: JWT_EXPIRES_IN as SignOptions["expiresIn"] }
     );
 
     return { user, token };
@@ -52,7 +52,7 @@ export class UserService {
 
   // Get user by ID (for Whoami)
   async getUserById(userId: string) {
-    const user = await userRepoInstance.findById(userId);
+    const user = await userRepoInstance.findByIdWithPassword(userId);
     if (!user) {
       throw new CustomHttpException(404, "User not found");
     }

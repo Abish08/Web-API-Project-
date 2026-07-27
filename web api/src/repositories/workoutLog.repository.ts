@@ -22,9 +22,13 @@ export class WorkoutLogRepository {
       .sort({ date: -1 });
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string, userId: string): Promise<boolean> {
     if (!mongoose.Types.ObjectId.isValid(id)) return false;
-    const result = await WorkoutLog.findByIdAndDelete(id);
+    if (!mongoose.Types.ObjectId.isValid(userId)) return false;
+    const result = await WorkoutLog.findOneAndDelete({
+      _id: new mongoose.Types.ObjectId(id),
+      userId: new mongoose.Types.ObjectId(userId),
+    });
     return !!result;
   }
 

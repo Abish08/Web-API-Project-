@@ -6,6 +6,7 @@ export interface IUserRepository {
   findByUsername(username: string): Promise<IUserDocument | null>;
   create(userData: Partial<IUserDocument>): Promise<IUserDocument>;
   findById(id: string): Promise<IUserDocument | null>;
+  findByIdWithPassword(id: string): Promise<IUserDocument | null>;
   updateUser(id: string, updateData: Partial<IUserDocument>): Promise<IUserDocument | null>;
   updatePassword(id: string, newPassword: string): Promise<IUserDocument | null>;
   //  pagination method to interface
@@ -22,11 +23,15 @@ export class UserRepositoryMongo implements IUserRepository {
   }
 
   async findByEmail(email: string): Promise<IUserDocument | null> {
-    return await UserCollection.findOne({ email });
+    return await UserCollection.findOne({ email }).select("+password");
   }
 
   async findByUsername(username: string): Promise<IUserDocument | null> {
     return await UserCollection.findOne({ username });
+  }
+
+  async findByIdWithPassword(id: string): Promise<IUserDocument | null> {
+    return await UserCollection.findOne({ _id: id }).select("+password");
   }
 
   async create(userData: Partial<IUserDocument>): Promise<IUserDocument> {

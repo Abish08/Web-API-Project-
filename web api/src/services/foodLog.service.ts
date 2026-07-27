@@ -10,6 +10,8 @@ export class FoodLogService {
   }
 
   async createLog(userId: string, foodId: string, servings: number, mealType: string, date: Date) {
+    if (servings <= 0) throw new Error("Servings must be greater than zero");
+
     // 1. Find the base food
     const food = await Food.findById(foodId);
     if (!food) throw new Error("Food not found");
@@ -42,7 +44,7 @@ export class FoodLogService {
 
   async deleteLog(id: string, userId: string) {
     // Optional: Verify the log belongs to the user before deleting
-    const deleted = await this.repo.delete(id);
+    const deleted = await this.repo.delete(id, userId);
     if (!deleted) throw new Error("Log not found or delete failed");
     return true;
   }

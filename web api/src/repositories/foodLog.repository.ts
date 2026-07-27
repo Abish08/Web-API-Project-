@@ -22,9 +22,13 @@ export class FoodLogRepository {
       .sort({ date: -1 });
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string, userId: string): Promise<boolean> {
     if (!mongoose.Types.ObjectId.isValid(id)) return false;
-    const result = await FoodLog.findByIdAndDelete(id);
+    if (!mongoose.Types.ObjectId.isValid(userId)) return false;
+    const result = await FoodLog.findOneAndDelete({
+      _id: new mongoose.Types.ObjectId(id),
+      userId: new mongoose.Types.ObjectId(userId),
+    });
     return !!result;
   }
 

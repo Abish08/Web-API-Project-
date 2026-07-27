@@ -8,12 +8,18 @@ import {
   updateProfile,
   changePassword
 } from "../controllers/user.controller";
+import { PasswordRecoveryController } from "../controllers/passwordRecovery.controller";
+import { asyncHandler } from "../utils/asyncHandler.util";
 
 const userRouter = Router();
+const passwordRecoveryController = new PasswordRecoveryController();
 
 // Public routes
 userRouter.post("/register", registerUser);
 userRouter.post("/login", loginUser);
+userRouter.post("/forgot-password", asyncHandler((req, res) => passwordRecoveryController.forgotPassword(req, res)));
+userRouter.post("/verify-otp", asyncHandler((req, res) => passwordRecoveryController.verifyOtp(req, res)));
+userRouter.post("/reset-password", asyncHandler((req, res) => passwordRecoveryController.resetPassword(req, res)));
 
 // Protected routes
 userRouter.get("/whoami", authMiddleware, whoami);

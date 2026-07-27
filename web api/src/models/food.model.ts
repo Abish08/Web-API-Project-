@@ -12,6 +12,11 @@ export interface IFood extends Document {
   sugar?: number;
   sodium?: number;
   description?: string;
+  dietaryTags?: string[];
+  allergens?: string[];
+  suitableGoals?: string[];
+  healthTags?: string[];
+  isActive: boolean;
   
   // Recipe fields
   recipe?: {
@@ -54,6 +59,10 @@ const foodSchema = new Schema<IFood>(
     sugar: { type: Number, default: 0, min: 0 },
     sodium: { type: Number, default: 0, min: 0 },
     description: { type: String, trim: true },
+    dietaryTags: [{ type: String, trim: true }],
+    allergens: [{ type: String, trim: true }],
+    suitableGoals: [{ type: String, enum: ["lose", "maintain", "gain"] }],
+    healthTags: [{ type: String, trim: true }],
     
     //  Recipe fields
     recipe: {
@@ -80,6 +89,7 @@ const foodSchema = new Schema<IFood>(
     },
     
     isApproved: { type: Boolean, default: true },
+    isActive: { type: Boolean, default: true },
     createdBy: { type: Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
