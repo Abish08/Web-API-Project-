@@ -1,175 +1,116 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { toast } from "react-toastify";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-
-interface Food {
-  _id: string;
-  name: string;
-  category: string;
-  servingSize: number;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  images?: Array<{ url: string }>;
-  createdAt: string;
-}
+import { toast } from "react-toastify";
+import { apiUrl } from "@/lib/api/server";
+import { Food } from "@/lib/api/types";
 
 export default function FoodListPage() {
   const [foods, setFoods] = useState<Food[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => {
-    fetchFoods();
-  }, []);
-
-  const fetchFoods = async () => {
+  const fetchFoods = useCallback(async () => {
+    setLoading(true);
     try {
-      const response = await fetch("http://localhost:8089/api/v1/foods", {
-        credentials: "include", // ✅ Send cookies for auth
-      });
+      const response = await fetch(apiUrl("/api/v1/foods"), { credentials: "include" });
       const data = await response.json();
-      if (data.success) {
-        setFoods(data.data);
-      }
-    } catch (error) {
-      console.error("Error fetching foods:", error);
+      if (data.success) setFoods(data.data);
+    } catch {
+      toast.error("Failed to fetch foods");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void fetchFoods();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchFoods]);
+
+  const filteredFoods = useMemo(
+    () => foods.filter((food) => food.name.toLowerCase().includes(searchTerm.toLowerCase())),
+    [foods, searchTerm]
+  );
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this food?")) return;
 
     try {
-      const response = await fetch(`http://localhost:8089/api/v1/foods/${id}`, {
+      const response = await fetch(apiUrl(`/api/v1/foods/${id}`), {
         method: "DELETE",
-        credentials: "include", // ✅ This sends cookies automatically
+        credentials: "include",
       });
-
       const data = await response.json();
-      
       if (data.success) {
-        toast.success("Food deleted successfully!");
-        fetchFoods(); // Refresh the list
+        toast.success("Food deleted successfully");
+        void fetchFoods();
       } else {
         toast.error(data.message || "Failed to delete food");
       }
-    } catch (error) {
-      console.error("Delete error:", error);
+    } catch {
       toast.error("Failed to delete food");
     }
   };
 
-  const filteredFoods = foods.filter(food =>
-    food.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (loading) {
-    return <div className="text-center py-12">Loading foods...</div>;
-  }
+  if (loading) return <div className="py-12 text-center">Loading foods...</div>;
 
   return (
     <div>
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Food Management</h1>
-          <p className="text-sm text-gray-600">Manage the nutritional database for Nepali foods</p>
+          <p className="text-sm text-gray-600">Manage the food library</p>
         </div>
-        <Link
-          href="/admin/foods/add"
-          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-        >
-          + Add New Food
+        <Link href="/admin/foods/add" className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700">
+          Add Food
         </Link>
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
-        <input
-          type="text"
-          placeholder="Search foods..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2"
-        />
-      </div>
+      <input
+        value={searchTerm}
+        onChange={(event) => setSearchTerm(event.target.value)}
+        className="mb-4 w-full rounded-lg border border-gray-200 px-4 py-2"
+        placeholder="Search foods..."
+        aria-label="Search foods"
+      />
 
-      {/* Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        {filteredFoods.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            No foods found. <Link href="/admin/foods/add" className="text-green-600 hover:underline">Add one!</Link>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Serving</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Calories</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Protein</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Carbs</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fats</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredFoods.map((food) => (
-                  <tr key={food._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        {food.images && food.images.length > 0 ? (
-                          <img
-                            src={`http://localhost:8089${food.images[0].url}`}
-                            alt={food.name}
-                            className="w-12 h-12 rounded-lg object-cover border border-gray-200"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
-                            No Img
-                          </div>
-                        )}
-                        <div className="text-sm font-medium text-gray-900">{food.name}</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {food.category}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{food.servingSize}g</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{food.calories} kcal</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{food.protein}g</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{food.carbs}g</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{food.fats}g</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Link 
-                        href={`/admin/foods/${food._id}/edit`}
-                        className="text-blue-600 hover:text-blue-900 mr-3"
-                      >
-                        Edit
-                      </Link>
-                      <button 
-                        onClick={() => handleDelete(food._id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              {["Name", "Category", "Serving", "Calories", "Macros", "Actions"].map((heading) => (
+                <th key={heading} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  {heading}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {filteredFoods.map((food) => (
+              <tr key={food._id}>
+                <td className="px-4 py-3 text-sm font-medium text-gray-900">{food.name}</td>
+                <td className="px-4 py-3 text-sm text-gray-600">{food.category}</td>
+                <td className="px-4 py-3 text-sm text-gray-600">{food.servingSize}</td>
+                <td className="px-4 py-3 text-sm text-gray-600">{food.calories}</td>
+                <td className="px-4 py-3 text-sm text-gray-600">
+                  P {food.protein}g / C {food.carbs}g / F {food.fats}g
+                </td>
+                <td className="space-x-3 px-4 py-3 text-sm">
+                  <Link href={`/admin/foods/${food._id}/edit`} className="font-medium text-green-700">Edit</Link>
+                  <button type="button" onClick={() => void handleDelete(food._id)} className="font-medium text-red-600">
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {filteredFoods.length === 0 && <p className="p-6 text-center text-sm text-gray-500">No foods found.</p>}
       </div>
     </div>
   );

@@ -1,6 +1,10 @@
 "use server";
 
 import { getTokenCookie } from "@/lib/cookies";
+import { apiUrl } from "@/lib/api/server";
+import { Food } from "@/lib/api/types";
+
+type FoodPayload = Partial<Food>;
 
 export async function fetchFoodsAction(search: string = "", category: string = "all") {
   try {
@@ -14,7 +18,7 @@ export async function fetchFoodsAction(search: string = "", category: string = "
     if (search) params.append("search", search);
     if (category !== "all") params.append("category", category);
 
-    const response = await fetch(`http://localhost:8089/api/v1/foods?${params}`, {
+    const response = await fetch(apiUrl(`/api/v1/foods?${params}`), {
       headers: {
         "Authorization": `Bearer ${token}`,
       },
@@ -23,13 +27,12 @@ export async function fetchFoodsAction(search: string = "", category: string = "
 
     const data = await response.json();
     return data;
-  } catch (error) {
-    console.error("Error fetching foods:", error);
+  } catch {
     return { success: false, message: "Failed to fetch foods" };
   }
 }
 
-export async function createFoodAction(foodData: any) {
+export async function createFoodAction(foodData: FoodPayload) {
   try {
     const token = await getTokenCookie();
     
@@ -37,7 +40,7 @@ export async function createFoodAction(foodData: any) {
       return { success: false, message: "Not authenticated" };
     }
 
-    const response = await fetch("http://localhost:8089/api/v1/foods", {
+    const response = await fetch(apiUrl("/api/v1/foods"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -48,13 +51,12 @@ export async function createFoodAction(foodData: any) {
 
     const data = await response.json();
     return data;
-  } catch (error) {
-    console.error("Error creating food:", error);
+  } catch {
     return { success: false, message: "Failed to create food" };
   }
 }
 
-export async function updateFoodAction(id: string, foodData: any) {
+export async function updateFoodAction(id: string, foodData: FoodPayload) {
   try {
     const token = await getTokenCookie();
     
@@ -62,7 +64,7 @@ export async function updateFoodAction(id: string, foodData: any) {
       return { success: false, message: "Not authenticated" };
     }
 
-    const response = await fetch(`http://localhost:8089/api/v1/foods/${id}`, {
+    const response = await fetch(apiUrl(`/api/v1/foods/${id}`), {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -73,8 +75,7 @@ export async function updateFoodAction(id: string, foodData: any) {
 
     const data = await response.json();
     return data;
-  } catch (error) {
-    console.error("Error updating food:", error);
+  } catch {
     return { success: false, message: "Failed to update food" };
   }
 }
@@ -87,7 +88,7 @@ export async function deleteFoodAction(id: string) {
       return { success: false, message: "Not authenticated" };
     }
 
-    const response = await fetch(`http://localhost:8089/api/v1/foods/${id}`, {
+    const response = await fetch(apiUrl(`/api/v1/foods/${id}`), {
       method: "DELETE",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -96,8 +97,7 @@ export async function deleteFoodAction(id: string) {
 
     const data = await response.json();
     return data;
-  } catch (error) {
-    console.error("Error deleting food:", error);
+  } catch {
     return { success: false, message: "Failed to delete food" };
   }
 }

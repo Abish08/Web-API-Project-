@@ -1,5 +1,13 @@
 import { handleGetAllUsers } from "@/lib/actions/admin/user-action";
 import UserTable from "./_components/UserTable"; 
+import { User } from "@/lib/api/types";
+
+type Pagination = {
+  page?: number;
+  limit?: number;
+  totalPages?: number;
+  total?: number;
+};
 export default async function UsersPage({
   searchParams,
 }: {
@@ -19,8 +27,8 @@ export default async function UsersPage({
   return (
     <div>
       <UserTable 
-        data={result.data || []} 
-        pagination={result.pagination} 
+        data={(result.data || []) as User[]} 
+        pagination={(result.pagination || {}) as Pagination} 
         search={search} 
       />
     </div>

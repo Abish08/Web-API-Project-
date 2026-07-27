@@ -1,33 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { apiUrl, API_BASE_URL } from "@/lib/api/server";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-
-interface Food {
-  _id: string;
-  name: string;
-  category: string;
-  servingSize: number;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  fiber?: number;
-  sugar?: number;
-  sodium?: number;
-  description?: string;
-  images?: Array<{ url: string; publicId: string }>;
-  recipe?: {
-    ingredients: string[];
-    instructions: string[];
-    prepTime: number;
-    cookTime: number;
-    servings: number;
-    difficulty: string;
-  };
-}
 
 interface RecipeData {
   ingredients: string[];
@@ -43,7 +20,6 @@ export default function EditFoodPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
-  const [food, setFood] = useState<Food | null>(null);
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   
@@ -70,18 +46,13 @@ export default function EditFoodPage() {
     difficulty: "Medium" as "Easy" | "Medium" | "Hard",
   });
 
-  useEffect(() => {
-    fetchFood();
-  }, []);
-
-  const fetchFood = async () => {
+  const fetchFood = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:8089/api/v1/foods/${params.id}`);
+      const response = await fetch(apiUrl(`/api/v1/foods/${params.id}`));
       const data = await response.json();
       
       if (data.success) {
         const foodData = data.data;
-        setFood(foodData);
         
         setFormData({
           name: foodData.name,
@@ -109,16 +80,23 @@ export default function EditFoodPage() {
         }
 
         if (foodData.images) {
-          setPreviewUrls(foodData.images.map((img: { url: string }) => `http://localhost:8089${img.url}`));
+          setPreviewUrls(foodData.images.map((img: { url: string }) => `${API_BASE_URL}${img.url}`));
         }
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to load food");
-      console.error(error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void fetchFood();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchFood]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -147,7 +125,7 @@ export default function EditFoodPage() {
       });
 
       // ✅ FIXED: Use credentials to send cookies automatically
-      const response = await fetch(`http://localhost:8089/api/v1/foods/${params.id}`, {
+      const response = await fetch(apiUrl(`/api/v1/foods/${params.id}`), {
         method: "PUT",
         credentials: "include", // ✅ This sends the auth cookie
         body: formDataToSend,
@@ -403,6 +381,7 @@ export default function EditFoodPage() {
               <div className="grid grid-cols-3 gap-4 mt-4">
                 {previewUrls.map((url, index) => (
                   <div key={index} className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- Preview URLs can be local object URLs from unsaved uploads. */}
                     <img
                       src={url}
                       alt={`Preview ${index + 1}`}

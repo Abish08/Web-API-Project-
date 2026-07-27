@@ -1,28 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { apiUrl, API_BASE_URL } from "@/lib/api/server";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-
-interface Workout {
-  _id: string;
-  name: string;
-  category: string;
-  duration: number;
-  caloriesBurned: number;
-  difficulty: string;
-  description?: string;
-  equipment?: string;
-  media?: Array<{ type: string; url: string; publicId: string }>;
-}
 
 export default function EditWorkoutPage() {
   const params = useParams();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
-  const [workout, setWorkout] = useState<Workout | null>(null);
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState("");
@@ -37,18 +25,13 @@ export default function EditWorkoutPage() {
     equipment: "",
   });
 
-  useEffect(() => {
-    fetchWorkout();
-  }, []);
-
-  const fetchWorkout = async () => {
+  const fetchWorkout = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:8089/api/v1/workouts/${params.id}`);
+      const response = await fetch(apiUrl(`/api/v1/workouts/${params.id}`));
       const data = await response.json();
       
       if (data.success) {
         const workoutData = data.data;
-        setWorkout(workoutData);
         
         setFormData({
           name: workoutData.name || "",
@@ -65,19 +48,26 @@ export default function EditWorkoutPage() {
           const imageMedia = workoutData.media.filter((m: { type: string }) => m.type === 'image');
           const videoMedia = workoutData.media.find((m: { type: string }) => m.type === 'video');
           
-          setPreviewUrls(imageMedia.map((item: { url: string }) => `http://localhost:8089${item.url}`));
+          setPreviewUrls(imageMedia.map((item: { url: string }) => `${API_BASE_URL}${item.url}`));
           if (videoMedia) {
             setVideoUrl(videoMedia.url);
           }
         }
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to load workout");
-      console.error(error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void fetchWorkout();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchWorkout]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -112,7 +102,7 @@ export default function EditWorkoutPage() {
         formDataToSend.append("videoUrl", videoUrl);
       }
 
-      const response = await fetch(`http://localhost:8089/api/v1/workouts/${params.id}`, {
+      const response = await fetch(apiUrl(`/api/v1/workouts/${params.id}`), {
         method: "PUT",
         credentials: "include",
         body: formDataToSend,
@@ -275,6 +265,7 @@ export default function EditWorkoutPage() {
               <div className="grid grid-cols-3 gap-4 mt-4">
                 {previewUrls.map((url, index) => (
                   <div key={index} className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- Preview URLs can be local object URLs from unsaved uploads. */}
                     <img
                       src={url}
                       alt={`Preview ${index + 1}`}

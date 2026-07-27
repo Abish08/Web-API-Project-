@@ -3,17 +3,23 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { handleCreateUser } from "@/lib/actions/admin/user-action";
+import { getErrorMessage, UserRole } from "@/lib/api/types";
 
 const fieldClass = "h-12 w-full border border-gray-300 bg-white px-4 text-gray-900 placeholder:text-gray-500 outline-none transition-colors focus:border-gray-500 rounded-md";
 const labelClass = "mb-2 block text-xs font-bold uppercase tracking-[1.5px] text-gray-700";
-const errClass = "mt-1 block text-sm text-red-600";
-
 export default function UserForm() {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    firstName: string;
+    lastName: string;
+    email: string;
+    username: string;
+    password: string;
+    role: UserRole;
+  }>({
     firstName: "",
     lastName: "",
     email: "",
@@ -23,7 +29,7 @@ export default function UserForm() {
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({ ...formData, [e.target.name]: e.target.value as UserRole });
   };
 
   const onSubmit = (e: React.FormEvent) => {
@@ -37,8 +43,8 @@ export default function UserForm() {
         alert("User created successfully");
         router.push("/admin/users");
         router.refresh();
-      } catch (err: any) {
-        setError(err?.message || "Something went wrong");
+      } catch (err: unknown) {
+        setError(getErrorMessage(err, "Something went wrong"));
       }
     });
   };

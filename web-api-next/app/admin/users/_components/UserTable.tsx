@@ -5,20 +5,28 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Modal from "../../_components/Modal";
 import { handleDeleteUser } from "@/lib/actions/admin/user-action";
+import { User } from "@/lib/api/types";
+
+type Pagination = {
+  page?: number;
+  limit?: number;
+  totalPages?: number;
+  total?: number;
+};
 
 export default function UserTable({
   data,
   pagination,
   search,
 }: {
-  data: any[];
-  pagination: any;
+  data: User[];
+  pagination: Pagination;
   search: string;
 }) {
   const router = useRouter();
   const params = useSearchParams();
   const [isPending, startTransition] = useTransition();
-  const [target, setTarget] = useState<any | null>(null);
+  const [target, setTarget] = useState<User | null>(null);
 
   const page = pagination?.page ?? 1;
   const limit = pagination?.limit ?? 10;

@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { getUserData } from "@/lib/cookies";
 import { useEffect, useState } from "react";
 import { handleLogout } from "@/lib/actions/auth-action";
+import { User } from "@/lib/api/types";
 
 const TITLES: Record<string, string> = {
   admin: "Overview",
@@ -14,7 +15,7 @@ const TITLES: Record<string, string> = {
 
 export default function Header() {
   const pathname = usePathname();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {

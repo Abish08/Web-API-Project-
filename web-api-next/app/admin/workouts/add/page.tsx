@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { apiUrl } from "@/lib/api/server";
 
 export default function AddWorkoutPage() {
   const router = useRouter();
@@ -55,7 +56,7 @@ export default function AddWorkoutPage() {
         formDataToSend.append("videoUrl", videoUrl);
       }
 
-      const response = await fetch("http://localhost:8089/api/v1/workouts", {
+      const response = await fetch(apiUrl("/api/v1/workouts"), {
         method: "POST",
         credentials: "include",
         body: formDataToSend,
@@ -216,6 +217,7 @@ export default function AddWorkoutPage() {
               <div className="grid grid-cols-3 gap-4 mt-4">
                 {previewUrls.map((url, index) => (
                   <div key={index} className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- Preview URLs are local object URLs from unsaved uploads. */}
                     <img
                       src={url}
                       alt={`Preview ${index + 1}`}

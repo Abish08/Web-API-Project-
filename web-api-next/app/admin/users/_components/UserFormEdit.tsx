@@ -3,11 +3,12 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { handleUpdateUser } from "@/lib/actions/admin/user-action";
+import { getErrorMessage, User } from "@/lib/api/types";
 
 const fieldClass = "h-12 w-full border border-gray-300 bg-white px-4 text-gray-900 placeholder:text-gray-500 outline-none transition-colors focus:border-gray-500 rounded-md";
 const labelClass = "mb-2 block text-xs font-bold uppercase tracking-[1.5px] text-gray-700";
 
-export default function UserFormEdit({ user }: { user: any }) {
+export default function UserFormEdit({ user }: { user: User }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
   const router = useRouter();
@@ -53,8 +54,8 @@ export default function UserFormEdit({ user }: { user: any }) {
         alert("User updated successfully");
         router.push("/admin/users");
         router.refresh();
-      } catch (err: any) {
-        setError(err?.message || "Something went wrong");
+      } catch (err: unknown) {
+        setError(getErrorMessage(err, "Something went wrong"));
       }
     });
   };
