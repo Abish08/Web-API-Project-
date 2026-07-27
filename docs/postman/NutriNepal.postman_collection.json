@@ -1,0 +1,183 @@
+{
+  "info": {
+    "name": "NutriNepal API",
+    "_postman_id": "nutrinepal-api",
+    "description": "Local API collection for NutriNepal auth, profile, catalog, logs, recommendations, and admin workflows.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8089" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"firstName\": \"Nutri\",\n  \"lastName\": \"User\",\n  \"email\": \"{{email}}\",\n  \"username\": \"nutri_user\",\n  \"password\": \"{{password}}\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [{ "listen": "test", "script": { "exec": ["const json = pm.response.json();", "if (json?.data?.token) pm.environment.set('token', json.data.token);"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Who Am I",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/auth/whoami", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "whoami"] } }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/forgot-password", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "forgot-password"] }
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"otp\": \"{{otp}}\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/verify-otp", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "verify-otp"] }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"otp\": \"{{otp}}\",\n  \"newPassword\": \"NewPassword123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/reset-password", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "reset-password"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health Profile",
+      "item": [
+        {
+          "name": "Create or Update",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"weight\": 70,\n  \"height\": 170,\n  \"age\": 25,\n  \"gender\": \"male\",\n  \"activityLevel\": \"moderate\",\n  \"goal\": \"maintain\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/health-profile", "host": ["{{baseUrl}}"], "path": ["api", "v1", "health-profile"] }
+          }
+        },
+        {
+          "name": "Get Mine",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/health-profile", "host": ["{{baseUrl}}"], "path": ["api", "v1", "health-profile"] } }
+        }
+      ]
+    },
+    {
+      "name": "Catalog",
+      "item": [
+        {
+          "name": "List Foods",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/foods", "host": ["{{baseUrl}}"], "path": ["api", "v1", "foods"] } }
+        },
+        {
+          "name": "List Workouts",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/workouts", "host": ["{{baseUrl}}"], "path": ["api", "v1", "workouts"] } }
+        }
+      ]
+    },
+    {
+      "name": "Logs",
+      "item": [
+        {
+          "name": "Create Food Log",
+          "event": [{ "listen": "test", "script": { "exec": ["const json = pm.response.json();", "if (json?.data?._id) pm.environment.set('foodLogId', json.data._id);"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"foodId\": \"{{foodId}}\",\n  \"servings\": 1,\n  \"mealType\": \"Lunch\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/food-logs", "host": ["{{baseUrl}}"], "path": ["api", "v1", "food-logs"] }
+          }
+        },
+        {
+          "name": "Create Workout Log",
+          "event": [{ "listen": "test", "script": { "exec": ["const json = pm.response.json();", "if (json?.data?._id) pm.environment.set('workoutLogId', json.data._id);"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"workoutId\": \"{{workoutId}}\",\n  \"duration\": 30\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/workout-logs", "host": ["{{baseUrl}}"], "path": ["api", "v1", "workout-logs"] }
+          }
+        },
+        {
+          "name": "Progress Summary",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/progress", "host": ["{{baseUrl}}"], "path": ["api", "v1", "progress"] } }
+        }
+      ]
+    },
+    {
+      "name": "Recommendations",
+      "item": [
+        { "name": "Diet", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/recommendations/diet", "host": ["{{baseUrl}}"], "path": ["api", "v1", "recommendations", "diet"] } } },
+        { "name": "Workouts", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/recommendations/workouts", "host": ["{{baseUrl}}"], "path": ["api", "v1", "recommendations", "workouts"] } } },
+        { "name": "Weekly Plan", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/recommendations/weekly-plan", "host": ["{{baseUrl}}"], "path": ["api", "v1", "recommendations", "weekly-plan"] } } }
+      ]
+    },
+    {
+      "name": "Admin",
+      "auth": {
+        "type": "bearer",
+        "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+      },
+      "item": [
+        {
+          "name": "Login Admin",
+          "event": [{ "listen": "test", "script": { "exec": ["const json = pm.response.json();", "if (json?.data?.token) pm.environment.set('adminToken', json.data.token);"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] }
+          }
+        },
+        { "name": "Stats", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/admin/stats", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "stats"] } } },
+        { "name": "List Users", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/admin/users", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "users"] } } },
+        {
+          "name": "Create Food",
+          "event": [{ "listen": "test", "script": { "exec": ["const json = pm.response.json();", "if (json?.data?._id) pm.environment.set('foodId', json.data._id);"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman Dal Bhat\",\n  \"category\": \"Lunch\",\n  \"servingSize\": 1,\n  \"calories\": 650,\n  \"protein\": 24,\n  \"carbs\": 100,\n  \"fats\": 14,\n  \"suitableGoals\": [\"maintain\", \"gain\"]\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/foods", "host": ["{{baseUrl}}"], "path": ["api", "v1", "foods"] }
+          }
+        },
+        {
+          "name": "Create Workout",
+          "event": [{ "listen": "test", "script": { "exec": ["const json = pm.response.json();", "if (json?.data?._id) pm.environment.set('workoutId', json.data._id);"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman Brisk Walk\",\n  \"category\": \"Cardio\",\n  \"duration\": 30,\n  \"caloriesBurned\": 180,\n  \"difficulty\": \"Beginner\",\n  \"goalTags\": [\"lose\", \"maintain\"]\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/workouts", "host": ["{{baseUrl}}"], "path": ["api", "v1", "workouts"] }
+          }
+        }
+      ]
+    }
+  ]
+}
