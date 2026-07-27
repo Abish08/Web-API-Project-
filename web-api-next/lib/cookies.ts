@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { User } from "./api/types";
 
 // Set authentication token cookie
 export async function setTokenCookie(token: string) {
@@ -23,7 +24,7 @@ export async function getTokenCookie(): Promise<string | null> {
 }
 
 // Store user data in cookie
-export async function storeUserData(userData: any) {
+export async function storeUserData(userData: User) {
   const cookieStore = await cookies();
   cookieStore.set({
     name: "user_data",
@@ -37,10 +38,10 @@ export async function storeUserData(userData: any) {
 }
 
 // Get cached user data from cookie
-export async function getUserData(): Promise<any | null> {
+export async function getUserData(): Promise<User | null> {
   const cookieStore = await cookies();
   const userDataCookie = cookieStore.get("user_data")?.value;
-  return userDataCookie ? JSON.parse(userDataCookie) : null;
+  return userDataCookie ? (JSON.parse(userDataCookie) as User) : null;
 }
 
 // Clear all authentication cookies

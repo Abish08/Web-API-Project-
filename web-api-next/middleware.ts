@@ -26,7 +26,7 @@ export function middleware(request: NextRequest) {
   const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route));
 
   // Auth routes
-  const authRoutes = ["/login", "/register"];
+  const authRoutes = ["/login", "/register", "/forgot-password", "/verify-otp", "/reset-password"];
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
   // If accessing admin route without token → redirect to login
@@ -53,5 +53,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/profile/:path*", "/password/:path*", "/admin/:path*", "/login", "/register"],
+  matcher: ["/dashboard/:path*", "/profile/:path*", "/password/:path*", "/admin/:path*", "/login", "/register", "/forgot-password", "/verify-otp", "/reset-password"],
 };
